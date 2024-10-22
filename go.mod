@@ -1,4 +1,4 @@
-module github.com/0chain/gosdk
+module github.com/0chain/egosdk
 
 go 1.21
 
