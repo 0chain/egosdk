@@ -1,5 +1,5 @@
 0CHAIN_PATH	:=  github.com/0chain
-GOSDK_PATH :=  $(0CHAIN_PATH)/gosdk
+GOSDK_PATH :=  $(0CHAIN_PATH)/egosdk
 OUTDIR := $(ROOT_DIR)/out
 IOSMOBILESDKDIR     := $(OUTDIR)/iossdk
 ANDROIDMOBILESDKDIR := $(OUTDIR)/androidsdk
