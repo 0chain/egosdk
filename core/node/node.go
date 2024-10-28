@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/0chain/egosdk/core/block"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/zboxcore/logger"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/block"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/zboxcore/logger"
 	"github.com/ethereum/go-ethereum/common/math"
 )
 

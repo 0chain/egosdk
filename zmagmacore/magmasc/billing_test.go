@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/0chain/gosdk/zmagmacore/time"
+	"github.com/0chain/egosdk/zmagmacore/time"
 )
 
 func Test_Billing_CalcAmount(t *testing.T) {

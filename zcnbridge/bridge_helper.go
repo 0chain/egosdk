@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/zcncore"
 	"github.com/pkg/errors"
 )
 

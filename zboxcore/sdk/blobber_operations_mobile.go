@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/0chain/egosdk/core/transaction"
+	"github.com/0chain/egosdk/zboxcore/client"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/transaction"
-	"github.com/0chain/gosdk/zboxcore/client"
 )
 
 // CreateAllocationForOwner creates a new allocation with the given options (txn: `storagesc.new_allocation_request`).

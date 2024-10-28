@@ -14,9 +14,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/zboxcore/marker"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 )
 
 // GetFileStats get file stats of blobbers

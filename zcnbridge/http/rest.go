@@ -13,10 +13,10 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/0chain/gosdk/core/logger"
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/zcnbridge/errors"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/logger"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/zcnbridge/errors"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 const (

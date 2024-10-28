@@ -4,7 +4,7 @@
 package zcn
 
 import (
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 // GetUserLockedTotal get total token user locked

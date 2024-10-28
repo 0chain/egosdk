@@ -3,11 +3,11 @@ package zcnbridge
 import (
 	"fmt"
 
-	"github.com/0chain/gosdk/core/common"
+	"github.com/0chain/egosdk/core/common"
 
-	"github.com/0chain/gosdk/zcnbridge/http"
-	"github.com/0chain/gosdk/zcnbridge/wallet"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/zcnbridge/http"
+	"github.com/0chain/egosdk/zcnbridge/wallet"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 // Models

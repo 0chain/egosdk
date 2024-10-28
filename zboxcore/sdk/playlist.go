@@ -7,13 +7,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/resty"
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/resty"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/zboxcore/client"
+	"github.com/0chain/egosdk/zboxcore/fileref"
+	"github.com/0chain/egosdk/zboxcore/logger"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 )
 
 type PlaylistFile struct {

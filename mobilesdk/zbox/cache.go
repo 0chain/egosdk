@@ -3,7 +3,7 @@ package zbox
 import (
 	"time"
 
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 

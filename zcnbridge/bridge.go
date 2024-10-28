@@ -8,28 +8,28 @@ import (
 	"strings"
 	"time"
 
-	"github.com/0chain/gosdk/zcnbridge/ethereum/uniswapnetwork"
-	"github.com/0chain/gosdk/zcnbridge/ethereum/uniswaprouter"
+	"github.com/0chain/egosdk/zcnbridge/ethereum/uniswapnetwork"
+	"github.com/0chain/egosdk/zcnbridge/ethereum/uniswaprouter"
 
 	"github.com/ybbus/jsonrpc/v3"
 
-	"github.com/0chain/gosdk/zcnbridge/ethereum/zcntoken"
-	hdw "github.com/0chain/gosdk/zcncore/ethhdwallet"
+	"github.com/0chain/egosdk/zcnbridge/ethereum/zcntoken"
+	hdw "github.com/0chain/egosdk/zcncore/ethhdwallet"
 	"github.com/spf13/viper"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/0chain/gosdk/core/logger"
-	"github.com/0chain/gosdk/zcnbridge/ethereum"
-	"github.com/0chain/gosdk/zcnbridge/ethereum/authorizers"
-	"github.com/0chain/gosdk/zcnbridge/ethereum/bridge"
-	"github.com/0chain/gosdk/zcnbridge/ethereum/nftconfig"
-	"github.com/0chain/gosdk/zcnbridge/log"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/logger"
+	"github.com/0chain/egosdk/zcnbridge/ethereum"
+	"github.com/0chain/egosdk/zcnbridge/ethereum/authorizers"
+	"github.com/0chain/egosdk/zcnbridge/ethereum/bridge"
+	"github.com/0chain/egosdk/zcnbridge/ethereum/nftconfig"
+	"github.com/0chain/egosdk/zcnbridge/log"
+	"github.com/0chain/egosdk/zcncore"
 
-	"github.com/0chain/gosdk/zcnbridge/transaction"
-	"github.com/0chain/gosdk/zcnbridge/wallet"
-	"github.com/0chain/gosdk/zcnbridge/zcnsc"
+	"github.com/0chain/egosdk/zcnbridge/transaction"
+	"github.com/0chain/egosdk/zcnbridge/wallet"
+	"github.com/0chain/egosdk/zcnbridge/zcnsc"
 	eth "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -155,7 +155,7 @@ func (b *BridgeClient) RemoveEthereumAuthorizer(ctx context.Context, address com
 }
 
 // AddEthereumAuthorizers add bridge authorizers to the Ethereum authorizers contract
-// 		- configDir - configuration directory
+//   - configDir - configuration directory
 func (b *BridgeClient) AddEthereumAuthorizers(configDir string) {
 	cfg := viper.New()
 	cfg.AddConfigPath(configDir)

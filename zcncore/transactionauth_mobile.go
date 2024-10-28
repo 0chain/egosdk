@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/0chain/egosdk/core/transaction"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/transaction"
 )
 
 func newTransactionWithAuth(cb TransactionCallback, txnFee string, nonce int64) (*TransactionWithAuth, error) {

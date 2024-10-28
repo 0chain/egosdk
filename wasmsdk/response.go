@@ -1,6 +1,6 @@
 package main
 
-import "github.com/0chain/gosdk/zboxcore/sdk"
+import "github.com/0chain/egosdk/zboxcore/sdk"
 
 type FileCommandResponse struct {
 	CommandSuccess bool   `json:"commandSuccess,omitempty"`

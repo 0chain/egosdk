@@ -7,12 +7,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/zcncrypto"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/zcncrypto"
 )
 
-//MSVote -- this should mimic the type Vote defined in MultiSig SC
+// MSVote -- this should mimic the type Vote defined in MultiSig SC
 type MSVote struct {
 	ProposalID string `json:"proposal_id"`
 
@@ -22,7 +22,7 @@ type MSVote struct {
 	Signature string `json:"signature"`
 }
 
-//MSTransfer - a data structure to hold state transfer from one client to another
+// MSTransfer - a data structure to hold state transfer from one client to another
 type MSTransfer struct {
 	ClientID   string `json:"from"`
 	ToClientID string `json:"to"`
@@ -109,7 +109,7 @@ func (msw *MSWallet) Marshal() (string, error) {
 	return string(msws), nil
 }
 
-//GetMultisigPayload given a multisig wallet as a string, makes a multisig wallet payload to register
+// GetMultisigPayload given a multisig wallet as a string, makes a multisig wallet payload to register
 func GetMultisigPayload(mswstr string) (interface{}, error) {
 	var msw MSWallet
 	err := json.Unmarshal([]byte(mswstr), &msw)
@@ -140,7 +140,7 @@ func GetMultisigPayload(mswstr string) (interface{}, error) {
 	return msscw, nil
 }
 
-//GetMultisigVotePayload given a multisig vote as a string, makes a multisig vote payload to register
+// GetMultisigVotePayload given a multisig vote as a string, makes a multisig vote payload to register
 func GetMultisigVotePayload(msvstr string) (interface{}, error) {
 	var msv MSVote
 	err := json.Unmarshal([]byte(msvstr), &msv)

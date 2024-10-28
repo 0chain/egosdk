@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/0chain/egosdk/constants"
+	"github.com/0chain/egosdk/zboxcore/encryption"
+	"github.com/0chain/egosdk/zboxcore/logger"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/zboxcore/encryption"
-	"github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
 	"github.com/klauspost/reedsolomon"
 	"github.com/valyala/bytebufferpool"
 )

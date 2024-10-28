@@ -11,18 +11,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/0chain/gosdk/core/sys"
+	"github.com/0chain/egosdk/core/sys"
 	"github.com/pkg/errors"
 
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/core/version"
-	"github.com/0chain/gosdk/zboxcore/client"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/core/version"
+	"github.com/0chain/egosdk/zboxcore/client"
+	l "github.com/0chain/egosdk/zboxcore/logger"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 
-	"github.com/0chain/gosdk/mobilesdk/zbox"
-	"github.com/0chain/gosdk/mobilesdk/zboxapi"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/mobilesdk/zbox"
+	"github.com/0chain/egosdk/mobilesdk/zboxapi"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 var nonce = int64(0)

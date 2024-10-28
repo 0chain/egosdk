@@ -5,8 +5,8 @@ import (
 
 	"errors"
 
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zboxcore/fileref"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/zboxcore/fileref"
 )
 
 // Downloader downloader for file, blocks and thumbnail
@@ -42,10 +42,10 @@ type DownloadOptions struct {
 }
 
 // CreateDownloader create a downloander instance with options
-//		- allocationID: allocation id
-//		- localPath: local path to save the downloaded file
-//		- remotePath: remote path of the file to download
-//		- opts: download options as option functions
+//   - allocationID: allocation id
+//   - localPath: local path to save the downloaded file
+//   - remotePath: remote path of the file to download
+//   - opts: download options as option functions
 func CreateDownloader(allocationID, localPath, remotePath string, opts ...DownloadOption) (Downloader, error) {
 	do := DownloadOptions{
 		localPath:  localPath,

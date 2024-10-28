@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/0chain/egosdk/core/resty"
+	"github.com/0chain/egosdk/core/util"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/resty"
-	"github.com/0chain/gosdk/core/util"
 )
 
 var (

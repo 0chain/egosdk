@@ -4,9 +4,9 @@ package magmasc
 import (
 	"encoding/json"
 
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/zmagmacore/errors"
-	"github.com/0chain/gosdk/zmagmacore/storage"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/zmagmacore/errors"
+	"github.com/0chain/egosdk/zmagmacore/storage"
 )
 
 type (

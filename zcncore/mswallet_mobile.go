@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/zcncrypto"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/zcncrypto"
 )
 
 type MultisigSCWallet interface {
@@ -42,7 +42,7 @@ func (ss stringSlice) Get(i int) (string, error) {
 	return ss[i], nil
 }
 
-//GetMultisigPayload given a multisig wallet as a string, makes a multisig wallet payload to register
+// GetMultisigPayload given a multisig wallet as a string, makes a multisig wallet payload to register
 func GetMultisigPayload(mswstr string) (MultisigSCWallet, error) {
 	var msw msWallet
 	err := json.Unmarshal([]byte(mswstr), &msw)
@@ -209,14 +209,14 @@ func (m *msVote) GetSignature() string {
 	return m.Signature
 }
 
-//msTransfer - a data structure to hold state transfer from one client to another
+// msTransfer - a data structure to hold state transfer from one client to another
 type msTransfer struct {
 	ClientID   string `json:"from"`
 	ToClientID string `json:"to"`
 	Amount     uint64 `json:"amount"`
 }
 
-//GetMultisigVotePayload given a multisig vote as a string, makes a multisig vote payload to register
+// GetMultisigVotePayload given a multisig vote as a string, makes a multisig vote payload to register
 func GetMultisigVotePayload(msvstr string) (MSVote, error) {
 	var msv msVote
 	err := json.Unmarshal([]byte(msvstr), &msv)

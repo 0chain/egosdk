@@ -15,18 +15,18 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/pathutil"
-	"github.com/0chain/gosdk/core/sys"
+	"github.com/0chain/egosdk/constants"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/pathutil"
+	"github.com/0chain/egosdk/core/sys"
 	"github.com/hack-pad/safejs"
 
-	"github.com/0chain/gosdk/core/transaction"
-	"github.com/0chain/gosdk/wasmsdk/jsbridge"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/core/transaction"
+	"github.com/0chain/egosdk/wasmsdk/jsbridge"
+	"github.com/0chain/egosdk/zboxcore/fileref"
+	"github.com/0chain/egosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 
 	"github.com/hack-pad/go-webworkers/worker"
 )

@@ -3,7 +3,7 @@ package registration
 import (
 	"context"
 
-	"github.com/0chain/gosdk/zmagmacore/magmasc"
+	"github.com/0chain/egosdk/zmagmacore/magmasc"
 )
 
 type (

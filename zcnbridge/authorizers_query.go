@@ -9,14 +9,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zcnbridge/errors"
-	"github.com/0chain/gosdk/zcnbridge/ethereum"
-	h "github.com/0chain/gosdk/zcnbridge/http"
-	"github.com/0chain/gosdk/zcnbridge/log"
-	"github.com/0chain/gosdk/zcnbridge/wallet"
-	"github.com/0chain/gosdk/zcnbridge/zcnsc"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/zcnbridge/errors"
+	"github.com/0chain/egosdk/zcnbridge/ethereum"
+	h "github.com/0chain/egosdk/zcnbridge/http"
+	"github.com/0chain/egosdk/zcnbridge/log"
+	"github.com/0chain/egosdk/zcnbridge/wallet"
+	"github.com/0chain/egosdk/zcnbridge/zcnsc"
+	"github.com/0chain/egosdk/zcncore"
 	"go.uber.org/zap"
 )
 

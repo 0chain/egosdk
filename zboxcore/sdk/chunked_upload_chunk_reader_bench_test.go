@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/0chain/gosdk/zboxcore/encryption"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/zboxcore/encryption"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/klauspost/reedsolomon"
 )
 

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/0chain/gosdk/core/sys"
+	"github.com/0chain/egosdk/core/sys"
 )
 
 // #EXTM3U

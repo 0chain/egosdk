@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/0chain/gosdk/core/common"
+	"github.com/0chain/egosdk/core/common"
 	"github.com/valyala/bytebufferpool"
 )
 

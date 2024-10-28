@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/hashicorp/go-retryablehttp"
 )
 

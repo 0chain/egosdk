@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/mocks"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
+	"github.com/0chain/egosdk/zboxcore/client"
+	"github.com/0chain/egosdk/zboxcore/mocks"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

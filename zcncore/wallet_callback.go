@@ -3,7 +3,7 @@ package zcncore
 import (
 	"sync"
 
-	"github.com/0chain/gosdk/core/common"
+	"github.com/0chain/egosdk/core/common"
 )
 
 type walletCallback struct {

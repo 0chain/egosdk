@@ -3,9 +3,9 @@ package allocationchange
 import (
 	"path"
 
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/zboxcore/fileref"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zboxcore/fileref"
 )
 
 type DeleteFileChange struct {

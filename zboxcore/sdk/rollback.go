@@ -17,12 +17,12 @@ import (
 	"errors"
 
 	"github.com/0chain/common/core/common"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
+	"github.com/0chain/egosdk/zboxcore/client"
+	l "github.com/0chain/egosdk/zboxcore/logger"
+	"github.com/0chain/egosdk/zboxcore/marker"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/client"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
 	"go.uber.org/zap"
 )
 

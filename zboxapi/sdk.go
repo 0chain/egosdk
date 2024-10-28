@@ -10,12 +10,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/zcncore"
 
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/logger"
+	"github.com/0chain/egosdk/core/resty"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/logger"
-	"github.com/0chain/gosdk/core/resty"
 )
 
 var log logger.Logger

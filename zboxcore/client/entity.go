@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/core/zcncrypto"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/core/zcncrypto"
 )
 
 type SignFunc func(hash string) (string, error)

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/constants"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 )
 
 var ErrInvalidAllocation = errors.New("zbox: invalid allocation")

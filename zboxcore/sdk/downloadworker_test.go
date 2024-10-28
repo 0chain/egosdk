@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/sha3"
 )

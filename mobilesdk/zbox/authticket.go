@@ -1,7 +1,7 @@
 package zbox
 
 import (
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 )
 
 // AuthTicket - auth ticket structure

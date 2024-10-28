@@ -12,14 +12,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/0chain/egosdk/core/block"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/node"
+	"github.com/0chain/egosdk/core/transaction"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/core/zcncrypto"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/block"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/node"
-	"github.com/0chain/gosdk/core/transaction"
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/core/zcncrypto"
 )
 
 const (

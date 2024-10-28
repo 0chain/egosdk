@@ -3,7 +3,7 @@ package transaction
 import (
 	"testing"
 
-	"github.com/0chain/gosdk/core/conf"
+	"github.com/0chain/egosdk/core/conf"
 	"github.com/stretchr/testify/assert"
 )
 

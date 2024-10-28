@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/0chain/egosdk/core/sys"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/sys"
 )
 
 type DownloadProgressStorer interface {

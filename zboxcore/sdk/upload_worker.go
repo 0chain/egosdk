@@ -7,12 +7,12 @@ import (
 	"io"
 	"strings"
 
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zboxcore/allocationchange"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/constants"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/zboxcore/allocationchange"
+	"github.com/0chain/egosdk/zboxcore/fileref"
+	l "github.com/0chain/egosdk/zboxcore/logger"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )

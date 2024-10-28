@@ -9,9 +9,9 @@ import (
 	"math"
 	"sync"
 
+	"github.com/0chain/egosdk/zboxcore/marker"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
 )
 
 const (

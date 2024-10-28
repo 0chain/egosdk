@@ -1,8 +1,8 @@
 package wallet
 
 import (
-	"github.com/0chain/gosdk/core/logger"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/logger"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 // SetupZCNSDK runs zcncore.SetLogFile, zcncore.SetLogLevel and zcncore.InitZCNSDK using provided Config.

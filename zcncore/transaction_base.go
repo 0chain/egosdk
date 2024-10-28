@@ -9,19 +9,19 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/core/node"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/zboxcore/fileref"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/node"
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zboxcore/fileref"
 
-	"github.com/0chain/gosdk/core/conf"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/transaction"
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/core/version"
-	"github.com/0chain/gosdk/core/zcncrypto"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
+	"github.com/0chain/egosdk/core/conf"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/transaction"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/core/version"
+	"github.com/0chain/egosdk/core/zcncrypto"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
 )
 
 var (

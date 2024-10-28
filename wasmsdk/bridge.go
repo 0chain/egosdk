@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/0chain/gosdk/zcnbridge"
-	"github.com/0chain/gosdk/zcnbridge/errors"
-	"github.com/0chain/gosdk/zcnbridge/log"
-	"github.com/0chain/gosdk/zcnbridge/transaction"
-	"github.com/0chain/gosdk/zcnbridge/wallet"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/zcnbridge"
+	"github.com/0chain/egosdk/zcnbridge/errors"
+	"github.com/0chain/egosdk/zcnbridge/log"
+	"github.com/0chain/egosdk/zcnbridge/transaction"
+	"github.com/0chain/egosdk/zcnbridge/wallet"
+	"github.com/0chain/egosdk/zcncore"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 

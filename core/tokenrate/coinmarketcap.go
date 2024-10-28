@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/0chain/gosdk/core/resty"
+	"github.com/0chain/egosdk/core/resty"
 )
 
 type coinmarketcapQuoteQuery struct {

@@ -16,15 +16,15 @@ import (
 	thrown "github.com/0chain/errors"
 	"github.com/google/uuid"
 
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zboxcore/allocationchange"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/logger"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/constants"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/zboxcore/allocationchange"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
+	"github.com/0chain/egosdk/zboxcore/client"
+	"github.com/0chain/egosdk/zboxcore/fileref"
+	"github.com/0chain/egosdk/zboxcore/logger"
+	l "github.com/0chain/egosdk/zboxcore/logger"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 )
 
 type DeleteRequest struct {
@@ -108,7 +108,7 @@ func (req *DeleteRequest) deleteBlobberFile(
 			}
 			if resp.StatusCode == http.StatusBadRequest {
 				body, err := ioutil.ReadAll(resp.Body)
-				if err!= nil {
+				if err != nil {
 					logger.Logger.Error("Failed to read response body", err)
 				}
 

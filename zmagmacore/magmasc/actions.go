@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/0chain/gosdk/zmagmacore/transaction"
+	"github.com/0chain/egosdk/zmagmacore/transaction"
 )
 
 // ExecuteSessionStart starts session for provided IDs by executing ConsumerSessionStartFuncName.

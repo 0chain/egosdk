@@ -9,14 +9,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/0chain/gosdk/core/node"
-	l "github.com/0chain/gosdk/zboxcore/logger"
+	"github.com/0chain/egosdk/core/node"
+	l "github.com/0chain/egosdk/zboxcore/logger"
 	"go.uber.org/zap"
 
+	"github.com/0chain/egosdk/core/conf"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/conf"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
 )
 
 const NETWORK_ENDPOINT = "/network"

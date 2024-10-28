@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 
+	"github.com/0chain/egosdk/core/sys"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/sys"
 	"github.com/spf13/viper"
 )
 

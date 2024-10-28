@@ -2,7 +2,7 @@
 package chain
 
 import (
-	"github.com/0chain/gosdk/zmagmacore/time"
+	"github.com/0chain/egosdk/zmagmacore/time"
 )
 
 // Chain represents data structure that holds the chain data.

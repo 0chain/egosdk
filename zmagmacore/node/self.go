@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/0chain/gosdk/zmagmacore/wallet"
+	"github.com/0chain/egosdk/zmagmacore/wallet"
 )
 
 // Node represent self node type.

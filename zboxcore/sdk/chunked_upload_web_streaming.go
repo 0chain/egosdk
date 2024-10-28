@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/0chain/egosdk/zboxcore/logger"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/zboxcore/logger"
 )
 
 // Converting the video file to fmp4 format for web streaming

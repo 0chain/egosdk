@@ -1,7 +1,7 @@
 package zbox
 
 import (
-	"github.com/0chain/gosdk/core/transaction"
+	"github.com/0chain/egosdk/core/transaction"
 )
 
 type StatusCallbackMocked interface {

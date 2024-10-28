@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 	"github.com/influxdata/influxdb/pkg/testing/assert"
 )
 

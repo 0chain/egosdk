@@ -4,7 +4,7 @@
 package sdk
 
 import (
-	"github.com/0chain/gosdk/core/encryption"
+	"github.com/0chain/egosdk/core/encryption"
 )
 
 // GetLookupHash get lookup hash with allocation id and path.

@@ -3,11 +3,11 @@ package marker
 import (
 	"fmt"
 
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/zboxcore/client"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zboxcore/client"
 )
 
 type ReadMarker struct {

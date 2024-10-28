@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/0chain/egosdk/constants"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/resty"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/core/zcncrypto"
+	"github.com/0chain/egosdk/zboxcore/client"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/resty"
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/core/zcncrypto"
-	"github.com/0chain/gosdk/zboxcore/client"
 )
 
 // ZBox  sdk client instance

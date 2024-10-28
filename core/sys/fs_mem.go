@@ -13,8 +13,8 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/wasmsdk/jsbridge"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/wasmsdk/jsbridge"
 	"github.com/valyala/bytebufferpool"
 )
 

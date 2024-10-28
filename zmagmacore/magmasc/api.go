@@ -3,7 +3,7 @@ package magmasc
 import (
 	"encoding/json"
 
-	"github.com/0chain/gosdk/zmagmacore/http"
+	"github.com/0chain/egosdk/zmagmacore/http"
 )
 
 // GetAllConsumers makes smart contract rest api call to magma smart contract

@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 // CreateWallet - create a new wallet, and save it to ~/.zcn/wallet.json

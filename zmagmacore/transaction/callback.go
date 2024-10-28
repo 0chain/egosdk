@@ -4,8 +4,8 @@ package transaction
 import (
 	"context"
 
-	"github.com/0chain/gosdk/zcncore"
-	"github.com/0chain/gosdk/zmagmacore/errors"
+	"github.com/0chain/egosdk/zcncore"
+	"github.com/0chain/egosdk/zmagmacore/errors"
 )
 
 type (

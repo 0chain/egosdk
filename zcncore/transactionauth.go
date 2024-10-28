@@ -9,8 +9,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/0chain/egosdk/core/transaction"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/transaction"
 )
 
 func newTransactionWithAuth(cb TransactionCallback, txnFee uint64, nonce int64) (*TransactionWithAuth, error) {

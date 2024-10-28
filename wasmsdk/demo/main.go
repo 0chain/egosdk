@@ -7,15 +7,15 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/zcncore"
 	"github.com/uptrace/bunrouter"
 )
 
 func main() {
 
 	zcncore.InitSignatureScheme("bls0chain")
-	
+
 	ctx, cf := context.WithCancel(context.Background())
 
 	router := bunrouter.New()

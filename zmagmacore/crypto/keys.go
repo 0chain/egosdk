@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/0chain/gosdk/core/zcncrypto"
-	"github.com/0chain/gosdk/zmagmacore/errors"
+	"github.com/0chain/egosdk/core/zcncrypto"
+	"github.com/0chain/egosdk/zmagmacore/errors"
 )
 
 // ReadKeysFile reads file existing in keysFile dir and parses public and private keys from file.

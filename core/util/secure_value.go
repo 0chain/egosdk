@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/0chain/gosdk/core/encryption"
+	"github.com/0chain/egosdk/core/encryption"
 )
 
 // Hashable anything that can provide it's hash

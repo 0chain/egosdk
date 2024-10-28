@@ -1,7 +1,7 @@
 package allocationchange
 
 import (
-	"github.com/0chain/gosdk/zboxcore/fileref"
+	"github.com/0chain/egosdk/zboxcore/fileref"
 )
 
 type change struct {

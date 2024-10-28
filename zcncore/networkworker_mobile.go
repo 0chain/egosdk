@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/0chain/egosdk/core/conf"
+	"github.com/0chain/egosdk/core/node"
+	"github.com/0chain/egosdk/core/util"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/conf"
-	"github.com/0chain/gosdk/core/node"
-	"github.com/0chain/gosdk/core/util"
 	"go.uber.org/zap"
 )
 

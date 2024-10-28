@@ -17,13 +17,13 @@ import (
 
 	"github.com/0chain/errors"
 
-	"github.com/0chain/gosdk/core/zcncrypto"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	zclient "github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/mocks"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/core/zcncrypto"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
+	zclient "github.com/0chain/egosdk/zboxcore/client"
+	"github.com/0chain/egosdk/zboxcore/fileref"
+	"github.com/0chain/egosdk/zboxcore/marker"
+	"github.com/0chain/egosdk/zboxcore/mocks"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

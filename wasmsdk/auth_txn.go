@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"syscall/js"
 
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/wasmsdk/jsbridge"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/wasmsdk/jsbridge"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 type AuthCallbackFunc func(msg string) string
@@ -92,7 +92,8 @@ func registerAuthCommon(this js.Value, args []js.Value) interface{} {
 }
 
 // authResponse Publishes the response to the authorization request.
-// 		`response` is the response to the authorization request.
+//
+//	`response` is the response to the authorization request.
 func authResponse(response string) {
 	authResponseC <- response
 }

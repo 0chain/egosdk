@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/zboxcore/client"
+	"github.com/0chain/egosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 // GetClientEncryptedPublicKey - getting client encrypted pub key

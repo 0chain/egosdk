@@ -10,12 +10,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/imageutil"
-	"github.com/0chain/gosdk/core/logger"
-	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/imageutil"
+	"github.com/0chain/egosdk/core/logger"
+	"github.com/0chain/egosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/zboxutil"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 var CreateObjectURL func(buf []byte, mimeType string) string

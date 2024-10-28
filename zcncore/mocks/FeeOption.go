@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	zcncore "github.com/0chain/gosdk/zcncore"
+	zcncore "github.com/0chain/egosdk/zcncore"
 	mock "github.com/stretchr/testify/mock"
 )
 

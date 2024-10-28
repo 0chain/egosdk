@@ -6,9 +6,9 @@ import (
 	"hash"
 	"sync"
 
+	"github.com/0chain/egosdk/constants"
+	"github.com/0chain/egosdk/core/util"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/util"
 )
 
 // Hasher interface to gather all hasher related functions.

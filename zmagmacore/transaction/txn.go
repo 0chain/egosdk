@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/zcncore"
-	"github.com/0chain/gosdk/zmagmacore/chain"
-	"github.com/0chain/gosdk/zmagmacore/errors"
-	"github.com/0chain/gosdk/zmagmacore/node"
-	ctime "github.com/0chain/gosdk/zmagmacore/time"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/zcncore"
+	"github.com/0chain/egosdk/zmagmacore/chain"
+	"github.com/0chain/egosdk/zmagmacore/errors"
+	"github.com/0chain/egosdk/zmagmacore/node"
+	ctime "github.com/0chain/egosdk/zmagmacore/time"
 )
 
 type (

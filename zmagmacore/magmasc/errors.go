@@ -1,7 +1,7 @@
 package magmasc
 
 import (
-	"github.com/0chain/gosdk/zmagmacore/errors"
+	"github.com/0chain/egosdk/zmagmacore/errors"
 )
 
 const (

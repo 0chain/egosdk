@@ -11,7 +11,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 )
 
 type RemoteFile struct {

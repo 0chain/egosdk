@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/util"
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/util"
 	lru "github.com/hashicorp/golang-lru"
 )
 

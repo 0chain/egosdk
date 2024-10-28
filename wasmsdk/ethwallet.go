@@ -1,3 +1,4 @@
+//go:build js && wasm
 // +build js,wasm
 
 package main
@@ -8,7 +9,7 @@ import (
 	"sync"
 	"syscall/js"
 
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 // JS does not have int64 so we must take a string instead of int64.
@@ -114,7 +115,7 @@ func TransferEthTokens(this js.Value, p []js.Value) interface{} {
 	return promiseConstructor.New(handler)
 }
 
-// Exports public functions in github.com/0chain/gosdk/zcncore/ethwallet.go
+// Exports public functions in github.com/0chain/egosdk/zcncore/ethwallet.go
 func IsValidEthAddress(this js.Value, p []js.Value) interface{} {
 	ethAddr := p[0].String()
 	success, err := zcncore.IsValidEthAddress(ethAddr)

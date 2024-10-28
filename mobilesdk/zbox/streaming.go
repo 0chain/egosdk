@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/0chain/gosdk/core/transaction"
+	"github.com/0chain/egosdk/core/transaction"
 
-	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zboxcore/sdk"
 )
 
 // StreamingService - holder for streaming service

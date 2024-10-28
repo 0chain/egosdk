@@ -9,9 +9,9 @@ import (
 import (
 	"encoding/json"
 
-	"github.com/0chain/gosdk/zboxapi"
-	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/zboxapi"
+	"github.com/0chain/egosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zcncore"
 )
 
 // GetAllocation get allocation info

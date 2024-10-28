@@ -13,13 +13,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/core/version"
-	"github.com/0chain/gosdk/core/zcncrypto"
-	"github.com/0chain/gosdk/wasmsdk/jsbridge"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/egosdk/core/sys"
+	"github.com/0chain/egosdk/core/version"
+	"github.com/0chain/egosdk/core/zcncrypto"
+	"github.com/0chain/egosdk/wasmsdk/jsbridge"
+	"github.com/0chain/egosdk/zboxcore/client"
+	"github.com/0chain/egosdk/zboxcore/sdk"
+	"github.com/0chain/egosdk/zcncore"
 
 	"github.com/hack-pad/safejs"
 

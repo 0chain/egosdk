@@ -18,9 +18,9 @@ import (
 
 	"errors"
 
+	"github.com/0chain/egosdk/zboxcore/allocationchange"
+	"github.com/0chain/egosdk/zboxcore/blockchain"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/zboxcore/allocationchange"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
 	"github.com/h2non/filetype"
 	"github.com/hitenjain14/fasthttp"
 	"github.com/lithammer/shortuuid/v3"

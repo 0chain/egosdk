@@ -7,9 +7,9 @@ package block
 import (
 	"fmt"
 
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/transaction"
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/core/encryption"
+	"github.com/0chain/egosdk/core/transaction"
 )
 
 type Key []byte

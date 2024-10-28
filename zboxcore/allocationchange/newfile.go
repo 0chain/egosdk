@@ -6,13 +6,13 @@ import (
 	"path"
 	"strings"
 
+	"github.com/0chain/egosdk/core/common"
+	"github.com/0chain/egosdk/core/pathutil"
+	"github.com/0chain/egosdk/core/util"
+	"github.com/0chain/egosdk/zboxcore/client"
+	"github.com/0chain/egosdk/zboxcore/fileref"
+	"github.com/0chain/egosdk/zboxcore/logger"
 	zError "github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/pathutil"
-	"github.com/0chain/gosdk/core/util"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/logger"
 	"github.com/google/uuid"
 )
 

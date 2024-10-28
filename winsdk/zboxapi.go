@@ -13,9 +13,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/0chain/gosdk/core/logger"
-	"github.com/0chain/gosdk/zboxapi"
-	"github.com/0chain/gosdk/zboxcore/client"
+	"github.com/0chain/egosdk/core/logger"
+	"github.com/0chain/egosdk/zboxapi"
+	"github.com/0chain/egosdk/zboxcore/client"
 )
 
 var (

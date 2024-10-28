@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"github.com/0chain/gosdk/zmagmacore/config"
-	"github.com/0chain/gosdk/zmagmacore/log"
+	"github.com/0chain/egosdk/zmagmacore/config"
+	"github.com/0chain/egosdk/zmagmacore/log"
 )
 
 type setupHandlers func(r *mux.Router, cfg config.Handler)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	factory "github.com/0chain/gosdk/znft/contracts/factorymoduleerc721/binding"
+	factory "github.com/0chain/egosdk/znft/contracts/factorymoduleerc721/binding"
 )
 
 // Solidity functions
