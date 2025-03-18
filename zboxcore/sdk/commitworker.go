@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -17,13 +16,13 @@ import (
 	"github.com/0chain/errors"
 	thrown "github.com/0chain/errors"
 	"github.com/0chain/gosdk/zboxcore/allocationchange"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/logger"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/zboxcore/blockchain"
+	"github.com/0chain/gosdk_common/zboxcore/fileref"
+	"github.com/0chain/gosdk_common/zboxcore/logger"
+	l "github.com/0chain/gosdk_common/zboxcore/logger"
+	"github.com/0chain/gosdk_common/zboxcore/marker"
+	"github.com/0chain/gosdk_common/zboxcore/zboxutil"
 )
 
 type ReferencePathResult struct {
@@ -50,6 +49,7 @@ func SuccessCommitResult() *CommitResult {
 const MARKER_VERSION = "v2"
 
 type CommitRequest struct {
+	ClientId      string
 	changes       []allocationchange.AllocationChange
 	blobber       *blockchain.StorageNode
 	allocationID  string
@@ -116,7 +116,7 @@ func (req *CommitRequest) commitBlobber() (err error) {
 	vm := &marker.VersionMarker{
 		Version:       req.version,
 		Timestamp:     req.timestamp,
-		ClientID:      client.GetClientID(),
+		ClientID:      client.Id(),
 		AllocationID:  req.allocationID,
 		BlobberID:     req.blobber.ID,
 		IsRepair:      req.isRepair,
@@ -147,7 +147,7 @@ func (req *CommitRequest) commitBlobber() (err error) {
 				l.Logger.Error("Creating form writer failed: ", err)
 				return
 			}
-			httpreq, err := zboxutil.NewCommitRequest(req.blobber.Baseurl, req.allocationID, req.allocationTx, body)
+			httpreq, err := zboxutil.NewCommitRequest(req.blobber.Baseurl, req.allocationID, req.allocationTx, body, 0)
 			if err != nil {
 				l.Logger.Error("Error creating commit req: ", err)
 				return
@@ -242,7 +242,7 @@ func (commitreq *CommitRequest) calculateHashRequest(ctx context.Context, paths 
 		if resp.StatusCode != http.StatusOK {
 			l.Logger.Error("Calculate hash response : ", resp.StatusCode)
 		}
-		resp_body, err := ioutil.ReadAll(resp.Body)
+		resp_body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			l.Logger.Error("Calculate hash: Resp", err)
 			return err

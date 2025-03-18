@@ -7,15 +7,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+
+	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/core/encryption"
+	"github.com/0chain/gosdk_common/core/imageutil"
+	"github.com/0chain/gosdk_common/core/logger"
+	"github.com/0chain/gosdk_common/core/screstapi"
+	"github.com/0chain/gosdk_common/zcncore"
+
 	"io"
 	"os"
-
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/imageutil"
-	"github.com/0chain/gosdk/core/logger"
-	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
-	"github.com/0chain/gosdk/zcncore"
 )
 
 var CreateObjectURL func(buf []byte, mimeType string) string
@@ -32,27 +34,34 @@ var CreateObjectURL func(buf []byte, mimeType string) string
 //   - sharderconsensous is the number of sharders to reach consensus
 func initSDKs(chainID, blockWorker, signatureScheme string,
 	minConfirmation, minSubmit, confirmationChainLength int,
-	zboxHost, zboxAppType string, sharderconsensous int) error {
+	zboxHost, zboxAppType string, sharderConsensous int) error {
+
+	// Print the parameters beautified
+	fmt.Printf("{ chainID: %s, blockWorker: %s, signatureScheme: %s, minConfirmation: %d, minSubmit: %d, confirmationChainLength: %d, zboxHost: %s, zboxAppType: %s, sharderConsensous: %d }\n", chainID, blockWorker, signatureScheme, minConfirmation, minSubmit, confirmationChainLength, zboxHost, zboxAppType, sharderConsensous)
 
 	zboxApiClient.SetRequest(zboxHost, zboxAppType)
 
-	err := sdk.InitStorageSDK("{}", blockWorker, chainID, signatureScheme, nil, 0)
+	params := client.InitSdkOptions{
+		WalletJSON:              "{}",
+		BlockWorker:             blockWorker,
+		ChainID:                 chainID,
+		SignatureScheme:         signatureScheme,
+		Nonce:                   int64(0),
+		AddWallet:               false,
+		MinConfirmation:         &minConfirmation,
+		MinSubmit:               &minSubmit,
+		SharderConsensous:       &sharderConsensous,
+		ConfirmationChainLength: &confirmationChainLength,
+		ZboxHost:                zboxHost,
+		ZboxAppType:             zboxAppType,
+	}
+
+	err := client.InitSDKWithWebApp(params)
 	if err != nil {
 		fmt.Println("wasm: InitStorageSDK ", err)
 		return err
 	}
 
-	err = zcncore.InitZCNSDK(blockWorker, signatureScheme,
-		zcncore.WithChainID(chainID),
-		zcncore.WithMinConfirmation(minConfirmation),
-		zcncore.WithMinSubmit(minSubmit),
-		zcncore.WithConfirmationChainLength(confirmationChainLength),
-		zcncore.WithSharderConsensous(sharderconsensous),
-	)
-
-	if err != nil {
-		return err
-	}
 	sdk.SetWasm()
 	return nil
 }
@@ -124,6 +133,7 @@ func getLookupHash(allocationID string, path string) string {
 
 // createThumbnail create thumbnail of an image buffer. It supports
 //   - png
+
 //   - jpeg
 //   - gif
 //   - bmp
@@ -152,7 +162,7 @@ func makeSCRestAPICall(scAddress, relativePath, paramsJson string) (string, erro
 	if err != nil {
 		sdkLogger.Error(fmt.Sprintf("Error parsing JSON: %v", err))
 	}
-	b, err := zboxutil.MakeSCRestAPICall(scAddress, relativePath, params, nil)
+	b, err := screstapi.MakeSCRestAPICall(scAddress, relativePath, params)
 	return string(b), err
 }
 
@@ -162,5 +172,9 @@ func makeSCRestAPICall(scAddress, relativePath, paramsJson string) (string, erro
 //   - fee is the transaction fee
 //   - desc is the description of the transaction
 func send(toClientID string, tokens uint64, fee uint64, desc string) (string, error) {
-	return sdk.ExecuteSmartContractSend(toClientID, tokens, fee, desc)
+	_, _, _, txn, err := zcncore.Send(toClientID, tokens, desc)
+	if err != nil {
+		return "", err
+	}
+	return txn.TransactionOutput, nil
 }

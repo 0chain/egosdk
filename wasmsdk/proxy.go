@@ -13,13 +13,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/0chain/gosdk/core/sys"
 	"github.com/0chain/gosdk/core/version"
-	"github.com/0chain/gosdk/core/zcncrypto"
 	"github.com/0chain/gosdk/wasmsdk/jsbridge"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/core/sys"
+	"github.com/0chain/gosdk_common/core/zcncrypto"
+	"github.com/0chain/gosdk_common/zboxcore/commonsdk"
+	"github.com/0chain/gosdk_common/zcncore"
 
 	"github.com/hack-pad/safejs"
 
@@ -36,7 +36,7 @@ var (
 func main() {
 	fmt.Printf("0CHAIN - GOSDK (version=%v)\n", version.VERSIONSTR)
 	sys.Files = sys.NewMemFS()
-	sdkLogger = sdk.GetLogger()
+	sdkLogger = commonsdk.GetLogger()
 	zcnLogger = zcncore.GetLogger()
 
 	window := js.Global()
@@ -59,18 +59,20 @@ func main() {
 					if c == nil || len(c.Keys) == 0 {
 						return "", errors.New("no keys found")
 					}
+
 					pk := c.Keys[0].PrivateKey
 					result, err := jsbridge.Await(jsSign.Invoke(hash, pk))
 
 					if len(err) > 0 && !err[0].IsNull() {
 						return "", errors.New("sign: " + err[0].String())
 					}
+
 					return result[0].String(), nil
 				}
 
 				//update sign with js sign
 				zcncrypto.Sign = signFunc
-				zcncore.SignFn = signFunc
+				client.SignFn = signFunc
 				sys.Sign = func(hash, signatureScheme string, keys []sys.KeyPair) (string, error) {
 					// js already has signatureScheme and keys
 					return signFunc(hash)
@@ -85,7 +87,7 @@ func main() {
 					data, err := json.Marshal(zcncore.AuthMessage{
 						Hash:      hash,
 						Signature: sig,
-						ClientID:  client.GetClient().ClientID,
+						ClientID:  client.Wallet().ClientID,
 					})
 					if err != nil {
 						return "", err
@@ -201,18 +203,20 @@ func main() {
 		if !(sdk.IsNull() || sdk.IsUndefined()) {
 			jsbridge.BindAsyncFuncs(sdk, map[string]interface{}{
 				//sdk
-				"init":                   initSDKs,
-				"setWallet":              setWallet,
-				"getPublicEncryptionKey": zcncore.GetPublicEncryptionKey,
-				"hideLogs":               hideLogs,
-				"showLogs":               showLogs,
-				"getUSDRate":             getUSDRate,
-				"isWalletID":             isWalletID,
-				"getVersion":             getVersion,
-				"getLookupHash":          getLookupHash,
-				"createThumbnail":        createThumbnail,
-				"makeSCRestAPICall":      makeSCRestAPICall,
-				"getWasmType":            getWasmType,
+				"init":                     initSDKs,
+				"setWallet":                setWallet,
+				"setWalletMode":            setWalletMode,
+				"getPublicEncryptionKey":   zcncore.GetPublicEncryptionKey,
+				"getPublicEncryptionKeyV2": zcncore.GetPublicEncryptionKeyV2,
+				"hideLogs":                 hideLogs,
+				"showLogs":                 showLogs,
+				"getUSDRate":               getUSDRate,
+				"isWalletID":               isWalletID,
+				"getVersion":               getVersion,
+				"getLookupHash":            getLookupHash,
+				"createThumbnail":          createThumbnail,
+				"makeSCRestAPICall":        makeSCRestAPICall,
+				"getWasmType":              getWasmType,
 
 				//blobber
 				"delete":                    Delete,
@@ -245,6 +249,7 @@ func main() {
 				"getFileMetaByName":         getFileMetaByName,
 				"downloadDirectory":         downloadDirectory,
 				"cancelDownloadDirectory":   cancelDownloadDirectory,
+				"cancelDownloadBlocks":      cancelDownloadBlocks,
 
 				// player
 				"play":           play,
@@ -269,12 +274,6 @@ func main() {
 				"createfreeallocation":       createfreeallocation,
 				"getUpdateAllocTicket":       getUpdateAllocTicket,
 
-				// readpool
-				"getReadPoolInfo": getReadPoolInfo,
-				"lockReadPool":    lockReadPool,
-				"unLockReadPool":  unLockReadPool,
-				"createReadPool":  createReadPool,
-
 				// claim rewards
 				"collectRewards": collectRewards,
 
@@ -289,10 +288,6 @@ func main() {
 				"decodeAuthTicket": decodeAuthTicket,
 				"allocationRepair": allocationRepair,
 				"repairSize":       repairSize,
-
-				//smartcontract
-				"executeSmartContract": executeSmartContract,
-				"faucet":               faucet,
 
 				// bridge
 				"initBridge":                    initBridge,
@@ -352,7 +347,6 @@ func main() {
 	}
 
 	if mode != "" {
-		fmt.Println("enterprise wasm sdk")
 		respChan := make(chan string, 1)
 		jsProxy := window.Get("__zcn_worker_wasm__")
 		if !(jsProxy.IsNull() || jsProxy.IsUndefined()) {
@@ -363,6 +357,7 @@ func main() {
 					if c == nil || len(c.Keys) == 0 {
 						return "", errors.New("no keys found")
 					}
+
 					pk := c.Keys[0].PrivateKey
 					result, err := jsbridge.Await(jsSign.Invoke(hash, pk))
 
@@ -373,7 +368,7 @@ func main() {
 				}
 				//update sign with js sign
 				zcncrypto.Sign = signFunc
-				zcncore.SignFn = signFunc
+				client.SignFn = signFunc
 				sys.Sign = func(hash, signatureScheme string, keys []sys.KeyPair) (string, error) {
 					// js already has signatureScheme and keys
 					return signFunc(hash)
@@ -479,8 +474,8 @@ func main() {
 
 		setWallet(clientID, clientKey, peerPublicKey, publicKey, privateKey, mnemonic, isSplit)
 		hideLogs()
-		debug.SetGCPercent(75)
-		debug.SetMemoryLimit(1 * 1024 * 1024 * 1024) //1GB
+		debug.SetGCPercent(40)
+		debug.SetMemoryLimit(300 * 1024 * 1024) //300MB
 		err = startListener(respChan)
 		if err != nil {
 			fmt.Println("Error starting listener", err)
@@ -489,8 +484,8 @@ func main() {
 	}
 
 	hideLogs()
-	debug.SetGCPercent(75)
-	debug.SetMemoryLimit(3.5 * 1024 * 1024 * 1024) //3.5 GB
+	debug.SetGCPercent(40)
+	debug.SetMemoryLimit(2.5 * 1024 * 1024 * 1024) //2.5 GB
 
 	<-make(chan bool)
 

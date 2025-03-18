@@ -2,19 +2,22 @@ package sdk
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/hex"
 	"sync"
 
 	"github.com/0chain/errors"
 
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/encryption"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/marker"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/core/common"
+	"github.com/0chain/gosdk_common/zboxcore/blockchain"
+	"github.com/0chain/gosdk_common/zboxcore/encryption"
+	"github.com/0chain/gosdk_common/zboxcore/fileref"
+	"github.com/0chain/gosdk_common/zboxcore/marker"
 )
 
 type ShareRequest struct {
+	ClientId          string
 	allocationID      string
 	allocationTx      string
 	sig               string
@@ -24,6 +27,7 @@ type ShareRequest struct {
 	expirationSeconds int64
 	blobbers          []*blockchain.StorageNode
 	ctx               context.Context
+	signingPrivateKey ed25519.PrivateKey
 }
 
 func (req *ShareRequest) GetFileRef() (*fileref.FileRef, error) {
@@ -54,7 +58,7 @@ func (req *ShareRequest) getAuthTicket(clientID, encPublicKey string) (*marker.A
 
 	at := &marker.AuthTicket{
 		AllocationID:   req.allocationID,
-		OwnerID:        client.GetClientID(),
+		OwnerID:        client.Id(),
 		ClientID:       clientID,
 		FileName:       req.remotefilename,
 		FilePathHash:   fileref.GetReferenceLookup(req.allocationID, req.remotefilepath),
@@ -70,7 +74,19 @@ func (req *ShareRequest) getAuthTicket(clientID, encPublicKey string) (*marker.A
 
 	if encPublicKey != "" { // file is encrypted
 		encScheme := encryption.NewEncryptionScheme()
-		if _, err := encScheme.Initialize((client.GetClient().Mnemonic)); err != nil {
+		var entropy string
+		if fRef.EncryptionVersion == SignatureV2 {
+			if len(req.signingPrivateKey) == 0 {
+				return nil, errors.New("wallet_error", "signing private key is empty")
+			}
+			entropy = hex.EncodeToString(req.signingPrivateKey)
+		} else {
+			entropy = client.Wallet().Mnemonic
+		}
+		if entropy == "" {
+			return nil, errors.New("wallet_error", "wallet mnemonic is empty")
+		}
+		if _, err := encScheme.Initialize((entropy)); err != nil {
 			return nil, err
 		}
 
@@ -81,6 +97,7 @@ func (req *ShareRequest) getAuthTicket(clientID, encPublicKey string) (*marker.A
 
 		at.ReEncryptionKey = reKey
 		at.Encrypted = true
+		at.EncryptionPublicKey = encPublicKey
 	}
 
 	if err := at.Sign(); err != nil {

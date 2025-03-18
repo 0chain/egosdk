@@ -4,6 +4,7 @@
 package sdk
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -11,18 +12,20 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/0chain/gosdk/core/sys"
+	"github.com/0chain/gosdk_common/core/sys"
 	"github.com/pkg/errors"
 
-	"github.com/0chain/gosdk/core/util"
 	"github.com/0chain/gosdk/core/version"
-	"github.com/0chain/gosdk/zboxcore/client"
-	l "github.com/0chain/gosdk/zboxcore/logger"
 	"github.com/0chain/gosdk/zboxcore/sdk"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/core/conf"
+	"github.com/0chain/gosdk_common/core/util"
+	"github.com/0chain/gosdk_common/zboxcore/commonsdk"
+	l "github.com/0chain/gosdk_common/zboxcore/logger"
 
 	"github.com/0chain/gosdk/mobilesdk/zbox"
 	"github.com/0chain/gosdk/mobilesdk/zboxapi"
-	"github.com/0chain/gosdk/zcncore"
+	"github.com/0chain/gosdk_common/zcncore"
 )
 
 var nonce = int64(0)
@@ -47,6 +50,7 @@ type ChainConfig struct {
 type StorageSDK struct {
 	chainconfig *ChainConfig
 	client      *client.Client
+	// chainconfig *ChainConfig
 }
 
 // SetLogFile setup log level for core libraries
@@ -54,20 +58,25 @@ type StorageSDK struct {
 //   - verbose: output detail logs
 func SetLogFile(logFile string, verbose bool) {
 	zcncore.SetLogFile(logFile, verbose)
-	sdk.SetLogFile(logFile, verbose)
+	commonsdk.SetLogFile(logFile, verbose)
 }
 
 // SetLogLevel set the log level.
 //
 //	`lvl` - 0 disabled; higher number (upto 4) more verbosity
 func SetLogLevel(logLevel int) {
-	sdk.SetLogLevel(logLevel)
+	commonsdk.SetLogLevel(logLevel)
 }
 
 // Init init the sdk with chain config
 //   - chainConfigJson: chain config json string
 func Init(chainConfigJson string) error {
-	return zcncore.Init(chainConfigJson)
+	cfg := conf.Config{}
+	err := json.Unmarshal([]byte(chainConfigJson), &cfg)
+	if err != nil {
+		return err
+	}
+	return client.Init(context.Background(), cfg)
 }
 
 // InitStorageSDK init storage sdk from config
@@ -108,7 +117,7 @@ func InitStorageSDK(clientJson string, configJson string) (*StorageSDK, error) {
 		l.Logger.Error(err)
 		return nil, err
 	}
-	err = zcncore.InitZCNSDK(configObj.BlockWorker, configObj.SignatureScheme)
+	err = Init(configObj.BlockWorker)
 	if err != nil {
 		l.Logger.Error(err)
 		return nil, err
@@ -118,12 +127,18 @@ func InitStorageSDK(clientJson string, configJson string) (*StorageSDK, error) {
 	l.Logger.Info(configObj.ChainID)
 	l.Logger.Info(configObj.SignatureScheme)
 	l.Logger.Info(configObj.PreferredBlobbers)
-	if err = sdk.InitStorageSDK(clientJson,
-		configObj.BlockWorker,
-		configObj.ChainID,
-		configObj.SignatureScheme,
-		configObj.PreferredBlobbers,
-		0); err != nil {
+	params := client.InitSdkOptions{
+		WalletJSON:      clientJson,
+		BlockWorker:     configObj.BlockWorker,
+		ChainID:         configObj.ChainID,
+		SignatureScheme: configObj.SignatureScheme,
+		Nonce:           int64(0),
+		AddWallet:       true,
+		ZboxHost:        configObj.ZboxHost,
+		ZboxAppType:     configObj.ZboxAppType,
+	}
+
+	if err = client.InitSDKWithWebApp(params); err != nil {
 		l.Logger.Error(err)
 		return nil, err
 	}
@@ -139,7 +154,7 @@ func InitStorageSDK(clientJson string, configJson string) (*StorageSDK, error) {
 
 	l.Logger.Info("Init successful")
 
-	return &StorageSDK{client: client.GetClient(), chainconfig: configObj}, nil
+	return &StorageSDK{}, nil
 }
 
 // CreateAllocation creating new allocation
@@ -150,15 +165,15 @@ func InitStorageSDK(clientJson string, configJson string) (*StorageSDK, error) {
 //   - lock: lock write pool with given number of tokens
 //   - blobberAuthTickets: list of blobber auth tickets needed for the restricted blobbers
 func (s *StorageSDK) CreateAllocation(datashards, parityshards int, size, expiration int64, lock string, blobberAuthTickets []string) (*zbox.Allocation, error) {
-	readPrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
-	writePrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	readPrice := commonsdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	writePrice := commonsdk.PriceRange{Min: 0, Max: math.MaxInt64}
 
 	l, err := util.ParseCoinStr(lock)
 	if err != nil {
 		return nil, err
 	}
 
-	options := sdk.CreateAllocationOptions{
+	options := commonsdk.CreateAllocationOptions{
 		DataShards:         datashards,
 		ParityShards:       parityshards,
 		Size:               size,
@@ -166,11 +181,11 @@ func (s *StorageSDK) CreateAllocation(datashards, parityshards int, size, expira
 		WritePrice:         writePrice,
 		Lock:               uint64(l),
 		BlobberIds:         []string{},
-		FileOptionsParams:  &sdk.FileOptionsParameters{},
+		FileOptionsParams:  &commonsdk.FileOptionsParameters{},
 		BlobberAuthTickets: blobberAuthTickets,
 	}
 
-	sdkAllocationID, _, _, err := sdk.CreateAllocationWith(options)
+	sdkAllocationID, _, _, err := commonsdk.CreateAllocationWith(options)
 	if err != nil {
 		return nil, err
 	}
@@ -191,15 +206,15 @@ func (s *StorageSDK) CreateAllocation(datashards, parityshards int, size, expira
 //   - blobberUrls: concat blobber urls with comma. leave it as empty if you don't have any preferred blobbers
 //   - blobberIds: concat blobber ids with comma. leave it as empty if you don't have any preferred blobbers
 func (s *StorageSDK) CreateAllocationWithBlobbers(name string, datashards, parityshards int, size int64, lock string, blobberUrls, blobberIds string, blobberAuthTickets []string) (*zbox.Allocation, error) {
-	readPrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
-	writePrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	readPrice := commonsdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	writePrice := commonsdk.PriceRange{Min: 0, Max: math.MaxInt64}
 
 	l, err := util.ParseCoinStr(lock)
 	if err != nil {
 		return nil, err
 	}
 
-	options := sdk.CreateAllocationOptions{
+	options := commonsdk.CreateAllocationOptions{
 		DataShards:         datashards,
 		ParityShards:       parityshards,
 		Size:               size,
@@ -212,7 +227,7 @@ func (s *StorageSDK) CreateAllocationWithBlobbers(name string, datashards, parit
 	if blobberUrls != "" {
 		urls := strings.Split(blobberUrls, ",")
 		if len(urls) > 0 {
-			ids, err := sdk.GetBlobberIds(urls)
+			ids, err := commonsdk.GetBlobberIds(urls)
 			if err != nil {
 				return nil, err
 			}
@@ -227,7 +242,7 @@ func (s *StorageSDK) CreateAllocationWithBlobbers(name string, datashards, parit
 		}
 	}
 
-	sdkAllocationID, _, _, err := sdk.CreateAllocationWith(options)
+	sdkAllocationID, _, _, err := commonsdk.CreateAllocationWith(options)
 	if err != nil {
 		return nil, err
 	}
@@ -308,30 +323,15 @@ func (s *StorageSDK) GetAllocationStats(allocationID string) (string, error) {
 // FinalizeAllocation finalize allocation
 //   - allocationID: allocation ID
 func (s *StorageSDK) FinalizeAllocation(allocationID string) (string, error) {
-	hash, _, err := sdk.FinalizeAllocation(allocationID)
+	hash, _, err := commonsdk.FinalizeAllocation(allocationID)
 	return hash, err
 }
 
 // CancelAllocation cancel allocation by ID
 //   - allocationID: allocation ID
 func (s *StorageSDK) CancelAllocation(allocationID string) (string, error) {
-	hash, _, err := sdk.CancelAllocation(allocationID)
+	hash, _, err := commonsdk.CancelAllocation(allocationID)
 	return hash, err
-}
-
-// GetReadPoolInfo is to get information about the read pool for the allocation
-//   - clientID: client ID
-func (s *StorageSDK) GetReadPoolInfo(clientID string) (string, error) {
-	readPool, err := sdk.GetReadPoolInfo(clientID)
-	if err != nil {
-		return "", err
-	}
-
-	retBytes, err := json.Marshal(readPool)
-	if err != nil {
-		return "", err
-	}
-	return string(retBytes), nil
 }
 
 // WRITE POOL METHODS
@@ -341,10 +341,25 @@ func (s *StorageSDK) GetReadPoolInfo(clientID string) (string, error) {
 //   - fee: fee of the transaction
 //   - allocID: allocation ID
 func (s *StorageSDK) WritePoolLock(durInSeconds int64, tokens, fee float64, allocID string) error {
-	_, _, err := sdk.WritePoolLock(
+	formattedWpLock := strconv.FormatUint(zcncore.ConvertToValue(tokens), 10)
+	formattedFee := strconv.FormatUint(zcncore.ConvertToValue(fee), 10)
+
+	wpLockUint, err := strconv.ParseUint(formattedWpLock, 10, 64)
+	if err != nil {
+		return errors.Errorf("Error parsing write pool lock: %v", err)
+	}
+
+	feeUint, err := strconv.ParseUint(formattedFee, 10, 64)
+
+	if err != nil {
+		return errors.Errorf("Error parsing fee: %v", err)
+	}
+	_, _, err = commonsdk.WritePoolLock(
 		allocID,
-		strconv.FormatUint(zcncore.ConvertTokenToSAS(tokens), 10),
-		strconv.FormatUint(zcncore.ConvertTokenToSAS(fee), 10))
+		wpLockUint,
+		feeUint,
+	)
+
 	return err
 }
 
@@ -358,18 +373,18 @@ func (s *StorageSDK) GetVersion() string {
 //   - extend: extend allocation
 //   - allocationID: allocation ID
 //   - lock: Number of tokens to lock to the allocation after the update
-func (s *StorageSDK) UpdateAllocation(size int64, extend bool, allocationID string, lock uint64) (hash string, err error) {
+func (s *StorageSDK) UpdateAllocation(size, authRoundExpiry int64, extend bool, allocationID string, lock uint64) (hash string, err error) {
 	if lock > math.MaxInt64 {
 		return "", errors.Errorf("int64 overflow in lock")
 	}
 
-	hash, _, err = sdk.UpdateAllocation(size, extend, allocationID, lock, "", "", "", false, &sdk.FileOptionsParameters{})
+	hash, _, err = sdk.UpdateAllocation(size, authRoundExpiry, extend, allocationID, lock, "", "", "", "", "", false, &commonsdk.FileOptionsParameters{}, "")
 	return hash, err
 }
 
 // GetBlobbersList get list of active blobbers, and format them as array json string
 func (s *StorageSDK) GetBlobbersList() (string, error) {
-	blobbs, err := sdk.GetBlobbers(true, false)
+	blobbs, err := commonsdk.GetBlobbers(true, false)
 	if err != nil {
 		return "", err
 	}
@@ -402,11 +417,11 @@ func (s *StorageSDK) RedeemFreeStorage(ticket string) (string, error) {
 		return "", err
 	}
 
-	if recipientPublicKey != client.GetClientPublicKey() {
+	if recipientPublicKey != client.PublicKey() {
 		return "", fmt.Errorf("invalid_free_marker: free marker is not assigned to your wallet")
 	}
 
-	hash, _, err := sdk.CreateFreeAllocation(marker, strconv.FormatUint(lock, 10))
+	hash, _, err := commonsdk.CreateFreeAllocation(marker, lock)
 	return hash, err
 }
 
@@ -437,7 +452,7 @@ func decodeTicket(ticket string) (string, string, uint64, error) {
 	markerStr, _ := json.Marshal(markerInput)
 
 	s, _ := strconv.ParseFloat(string(fmt.Sprintf("%v", lock)), 64)
-	return string(recipientPublicKey), string(markerStr), zcncore.ConvertTokenToSAS(s), nil
+	return string(recipientPublicKey), string(markerStr), zcncore.ConvertToValue(s), nil
 }
 
 // RegisterAuthorizer Client can extend interface and FaSS implementation to this register like this:

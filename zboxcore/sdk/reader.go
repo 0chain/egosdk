@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/gosdk_common/zboxcore/marker"
+	"github.com/0chain/gosdk_common/zboxcore/zboxutil"
 )
 
 const (
@@ -168,6 +168,7 @@ func GetDStorageFileReader(alloc *Allocation, ref *ORef, sdo *StreamDownloadOpti
 
 	sd := &StreamDownload{
 		DownloadRequest: &DownloadRequest{
+			ClientId:         alloc.Owner,
 			allocationID:     alloc.ID,
 			allocationTx:     alloc.Tx,
 			allocOwnerID:     alloc.Owner,
@@ -222,7 +223,7 @@ func GetDStorageFileReader(alloc *Allocation, ref *ORef, sdo *StreamDownloadOpti
 	if ref.EncryptedKey != "" {
 		sd.effectiveBlockSize = BlockSize - EncryptionOverHead
 		sd.encryptedKey = ref.EncryptedKey
-		err = sd.initEncryption()
+		err = sd.initEncryption(ref.SignatureVersion)
 		if err != nil {
 			return nil, err
 		}

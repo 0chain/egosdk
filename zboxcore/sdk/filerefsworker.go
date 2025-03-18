@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math"
 	"math/rand"
 	"net/http"
@@ -13,11 +13,11 @@ import (
 	"time"
 
 	"github.com/0chain/errors"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/logger"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/gosdk_common/core/common"
+	"github.com/0chain/gosdk_common/zboxcore/blockchain"
+	"github.com/0chain/gosdk_common/zboxcore/logger"
+	l "github.com/0chain/gosdk_common/zboxcore/logger"
+	"github.com/0chain/gosdk_common/zboxcore/zboxutil"
 )
 
 type ObjectTreeResult struct {
@@ -30,6 +30,7 @@ type ObjectTreeResult struct {
 const INVALID_PATH = "invalid_path"
 
 type ObjectTreeRequest struct {
+	ClientId       string
 	allocationID   string
 	allocationTx   string
 	sig            string
@@ -239,6 +240,7 @@ func (o *ObjectTreeRequest) getFileRefs(bUrl string, respChan chan *oTreeRespons
 			o.refType,
 			o.level,
 			o.pageLimit,
+			o.ClientId,
 		)
 		if err != nil {
 			oTR.err = err
@@ -252,7 +254,7 @@ func (o *ObjectTreeRequest) getFileRefs(bUrl string, respChan chan *oTreeRespons
 				return err
 			}
 			defer resp.Body.Close()
-			respBody, err := ioutil.ReadAll(resp.Body)
+			respBody, err := io.ReadAll(resp.Body)
 			if err != nil {
 				l.Logger.Error(err)
 				return err
@@ -328,10 +330,13 @@ type SimilarField struct {
 	ActualThumbnailSize int64  `json:"actual_thumbnail_size"`
 	ActualThumbnailHash string `json:"actual_thumbnail_hash"`
 	CustomMeta          string `json:"custom_meta"`
+	SignatureVersion    int    `json:"signature_version"`
+	EncryptionVersion   int    `json:"encryption_version"`
 }
 
 type RecentlyAddedRefRequest struct {
 	ctx          context.Context
+	ClientId     string
 	allocationID string
 	allocationTx string
 	sig          string
@@ -411,7 +416,7 @@ func (r *RecentlyAddedRefRequest) GetRecentlyAddedRefs() (*RecentlyAddedRefResul
 
 func (r *RecentlyAddedRefRequest) getRecentlyAddedRefs(resp *RecentlyAddedRefResponse, bUrl string) {
 	defer r.wg.Done()
-	req, err := zboxutil.NewRecentlyAddedRefsRequest(bUrl, r.allocationID, r.allocationTx, r.sig, r.fromDate, r.offset, r.pageLimit)
+	req, err := zboxutil.NewRecentlyAddedRefsRequest(bUrl, r.allocationID, r.allocationTx, r.sig, r.fromDate, r.offset, r.pageLimit, r.ClientId)
 	if err != nil {
 		resp.err = err
 		return
@@ -425,7 +430,7 @@ func (r *RecentlyAddedRefRequest) getRecentlyAddedRefs(resp *RecentlyAddedRefRes
 			return err
 		}
 		defer hResp.Body.Close()
-		body, err := ioutil.ReadAll(hResp.Body)
+		body, err := io.ReadAll(hResp.Body)
 		if err != nil {
 			l.Logger.Error(err)
 			return err

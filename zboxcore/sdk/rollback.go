@@ -18,11 +18,11 @@ import (
 
 	"github.com/0chain/common/core/common"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/client"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/zboxcore/blockchain"
+	l "github.com/0chain/gosdk_common/zboxcore/logger"
+	"github.com/0chain/gosdk_common/zboxcore/marker"
+	"github.com/0chain/gosdk_common/zboxcore/zboxutil"
 	"go.uber.org/zap"
 )
 
@@ -51,6 +51,7 @@ var (
 )
 
 type RollbackBlobber struct {
+	ClientId     string
 	blobber      *blockchain.StorageNode
 	commitResult *CommitResult
 	lvm          *LatestVersionMarker
@@ -62,11 +63,11 @@ type BlobberStatus struct {
 	Status string
 }
 
-func GetWritemarker(allocID, allocTx, sig, id, baseUrl string) (*LatestVersionMarker, error) {
+func GetWritemarker(allocID, allocTx, sig, id, baseUrl string, clientId ...string) (*LatestVersionMarker, error) {
 
 	var lvm LatestVersionMarker
 
-	req, err := zboxutil.NewWritemarkerRequest(baseUrl, allocID, allocTx, sig)
+	req, err := zboxutil.NewWritemarkerRequest(baseUrl, allocID, allocTx, sig, clientId...)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +104,7 @@ func GetWritemarker(allocID, allocTx, sig, id, baseUrl string) (*LatestVersionMa
 			return nil, err
 		}
 		if lvm.VersionMarker != nil && lvm.VersionMarker.Version != 0 {
-			err = lvm.VersionMarker.VerifySignature(client.GetClientPublicKey())
+			err = lvm.VersionMarker.VerifySignature(client.PublicKey())
 			if err != nil {
 				return nil, fmt.Errorf("signature verification failed for latest writemarker: %s", err.Error())
 			}
@@ -114,13 +115,14 @@ func GetWritemarker(allocID, allocTx, sig, id, baseUrl string) (*LatestVersionMa
 	return nil, fmt.Errorf("writemarker error response %d", http.StatusTooManyRequests)
 }
 
-func (rb *RollbackBlobber) processRollback(ctx context.Context, tx string) error {
+func (rb *RollbackBlobber) processRollback(ctx context.Context, tx string, allocVersion int64) error {
 	// don't rollback if the blobber is already in repair mode otherwise it will lead to inconsistent state
-	if rb.lvm == nil || rb.lvm.VersionMarker.IsRepair {
+	// don't rollback if the allocation verison is already
+	if rb.lvm == nil || rb.lvm.VersionMarker.IsRepair || allocVersion == 0 {
 		return nil
 	}
 	vm := &marker.VersionMarker{
-		ClientID:     client.GetClientID(),
+		ClientID:     client.Id(),
 		BlobberID:    rb.lvm.VersionMarker.BlobberID,
 		AllocationID: rb.lvm.VersionMarker.AllocationID,
 		Version:      rb.lvm.VersionMarker.Version - 1,
@@ -140,11 +142,23 @@ func (rb *RollbackBlobber) processRollback(ctx context.Context, tx string) error
 		return err
 	}
 	connID := zboxutil.NewConnectionId()
-	formWriter.WriteField("version_marker", string(vmData))
-	formWriter.WriteField("connection_id", connID)
-	formWriter.Close()
 
-	req, err := zboxutil.NewRollbackRequest(rb.blobber.Baseurl, vm.AllocationID, tx, body)
+	err = formWriter.WriteField("version_marker", string(vmData))
+	if err != nil {
+		return err
+	}
+
+	err = formWriter.WriteField("connection_id", connID)
+	if err != nil {
+		return err
+	}
+
+	err = formWriter.Close()
+	if err != nil {
+		return err
+	}
+
+	req, err := zboxutil.NewRollbackRequest(rb.blobber.Baseurl, vm.AllocationID, tx, body, vm.ClientID)
 	if err != nil {
 		l.Logger.Error("Creating rollback request failed: ", err)
 		return err
@@ -228,7 +242,7 @@ func (rb *RollbackBlobber) processRollback(ctx context.Context, tx string) error
 
 	}
 
-	return thrown.New("rolback_error", fmt.Sprint("Rollback failed"))
+	return thrown.New("rolback_error", "Rollback failed")
 }
 
 // CheckAllocStatus checks the status of the allocation
@@ -250,7 +264,7 @@ func (a *Allocation) CheckAllocStatus() (AllocStatus, []BlobberStatus, error) {
 				ID:     blobber.ID,
 				Status: "available",
 			}
-			lvm, err := GetWritemarker(a.ID, a.Tx, a.sig, blobber.ID, blobber.Baseurl)
+			lvm, err := GetWritemarker(a.ID, a.Tx, a.sig, blobber.ID, blobber.Baseurl, a.Owner)
 			if err != nil {
 				atomic.AddInt32(&errCnt, 1)
 				markerError = err
@@ -261,6 +275,7 @@ func (a *Allocation) CheckAllocStatus() (AllocStatus, []BlobberStatus, error) {
 				markerChan <- nil
 			} else {
 				markerChan <- &RollbackBlobber{
+					ClientId:     a.Owner,
 					blobber:      blobber,
 					lvm:          lvm,
 					commitResult: &CommitResult{},
@@ -336,7 +351,7 @@ func (a *Allocation) CheckAllocStatus() (AllocStatus, []BlobberStatus, error) {
 		wg.Add(1)
 		go func(rb *RollbackBlobber) {
 			defer wg.Done()
-			err := rb.processRollback(context.TODO(), a.Tx)
+			err := rb.processRollback(context.TODO(), a.Tx, a.allocationVersion)
 			if err != nil {
 				atomic.AddInt32(&errCnt, 1)
 				rb.commitResult = ErrorCommitResult(err.Error())
@@ -374,7 +389,7 @@ func (a *Allocation) RollbackWithMask(mask zboxutil.Uint128) {
 		go func(blobber *blockchain.StorageNode) {
 
 			defer wg.Done()
-			wr, err := GetWritemarker(a.ID, a.Tx, a.sig, blobber.ID, blobber.Baseurl)
+			wr, err := GetWritemarker(a.ID, a.Tx, a.sig, blobber.ID, blobber.Baseurl, a.Owner)
 			if err != nil {
 				l.Logger.Error("error during getWritemarker", zap.Error(err))
 			}
@@ -400,7 +415,7 @@ func (a *Allocation) RollbackWithMask(mask zboxutil.Uint128) {
 		wg.Add(1)
 		go func(rb *RollbackBlobber) {
 			defer wg.Done()
-			err := rb.processRollback(context.TODO(), a.Tx)
+			err := rb.processRollback(context.TODO(), a.Tx, a.allocationVersion)
 			if err != nil {
 				rb.commitResult = ErrorCommitResult(err.Error())
 				l.Logger.Error("error during rollback", zap.Error(err))

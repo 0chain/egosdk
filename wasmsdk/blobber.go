@@ -15,19 +15,20 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/encryption"
-	"github.com/0chain/gosdk/core/pathutil"
-	"github.com/0chain/gosdk/core/sys"
+	"github.com/0chain/gosdk_common/constants"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/core/common"
+	"github.com/0chain/gosdk_common/core/encryption"
+	"github.com/0chain/gosdk_common/core/pathutil"
+	"github.com/0chain/gosdk_common/core/sys"
 	"github.com/hack-pad/safejs"
 
-	"github.com/0chain/gosdk/core/transaction"
 	"github.com/0chain/gosdk/wasmsdk/jsbridge"
-	"github.com/0chain/gosdk/zboxcore/client"
-	"github.com/0chain/gosdk/zboxcore/fileref"
 	"github.com/0chain/gosdk/zboxcore/sdk"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/gosdk_common/core/transaction"
+	"github.com/0chain/gosdk_common/zboxcore/commonsdk"
+	"github.com/0chain/gosdk_common/zboxcore/fileref"
+	"github.com/0chain/gosdk_common/zboxcore/zboxutil"
 
 	"github.com/hack-pad/go-webworkers/worker"
 )
@@ -156,7 +157,7 @@ func getFileStats(allocationID, remotePath string) ([]*sdk.FileStats, error) {
 // and updates the blobber settings. Can only be called by the owner of the blobber.
 //   - blobberSettingsJson is the blobber settings in JSON format
 func updateBlobberSettings(blobberSettingsJson string) (*transaction.Transaction, error) {
-	var blobberSettings sdk.Blobber
+	var blobberSettings commonsdk.Blobber
 	err := json.Unmarshal([]byte(blobberSettingsJson), &blobberSettings)
 	if err != nil {
 		sdkLogger.Error(err)
@@ -168,7 +169,7 @@ func updateBlobberSettings(blobberSettingsJson string) (*transaction.Transaction
 		InputArgs: blobberSettings,
 	}
 
-	_, _, _, txn, err := sdk.StorageSmartContractTxn(sn)
+	_, _, _, txn, err := commonsdk.StorageSmartContractTxn(sn)
 	return txn, err
 }
 
@@ -415,7 +416,7 @@ func Share(allocationID, remotePath, clientID, encryptionPublicKey string, expir
 
 }
 
-func getFileMetaByName(allocationID, fileNameQuery string) ([]*sdk.ConsolidatedFileMetaByName, error) {
+func getFileMetaByName(allocationID, fileNameQuery string) ([]*commonsdk.ConsolidatedFileMetaByName, error) {
 	allocationObj, err := getAllocation(allocationID)
 	if err != nil {
 		return nil, err
@@ -479,7 +480,9 @@ func multiDownload(allocationID, jsonMultiDownloadOptions, authTicket, callbackF
 		}
 		var mf sys.File
 		if option.DownloadToDisk {
-			terminateWorkersWithAllocation(alloc)
+			if option.SuggestedName != "" {
+				fileName = option.SuggestedName
+			}
 			mf, err = jsbridge.NewFileWriter(fileName)
 			if err != nil {
 				PrintError(err.Error())
@@ -590,6 +593,7 @@ type MultiDownloadOption struct {
 	RemoteFileName   string `json:"remoteFileName"`             //Required only for file download with auth ticket
 	RemoteLookupHash string `json:"remoteLookupHash,omitempty"` //Required only for file download with auth ticket
 	DownloadToDisk   bool   `json:"downloadToDisk"`
+	SuggestedName    string `json:"suggestedName,omitempty"` //Suggested name for the file when downloading to disk, if empty will use base of remote path
 }
 
 // MultiOperation do copy, move, delete and createdir operation together
@@ -1078,8 +1082,8 @@ func downloadBlocks(allocId, remotePath, authTicket, lookupHash, writeChunkFuncN
 
 // getBlobbers get list of active blobbers, and format them as array json string
 //   - stakable : flag to get only stakable blobbers
-func getBlobbers(stakable bool) ([]*sdk.Blobber, error) {
-	blobbs, err := sdk.GetBlobbers(true, stakable)
+func getBlobbers(stakable bool) ([]*commonsdk.Blobber, error) {
+	blobbs, err := commonsdk.GetBlobbers(true, stakable)
 	if err != nil {
 		return nil, err
 	}
@@ -1134,7 +1138,7 @@ func checkAllocStatus(allocationID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if client.GetClientID() != alloc.Owner {
+	if client.Wallet().ClientID != alloc.Owner {
 		return "", errors.New("client id does not match with the allocation owner")
 	}
 	status, blobberStatus, err := alloc.CheckAllocStatus()
@@ -1247,6 +1251,14 @@ func cancelDownloadDirectory(remotePath string) {
 		cancel(errors.New("download directory canceled by user"))
 	}
 	downloadDirLock.Unlock()
+}
+
+func cancelDownloadBlocks(allocationID, remotePath string, start, end int64) error {
+	alloc, err := getAllocation(allocationID)
+	if err != nil {
+		return err
+	}
+	return alloc.CancelDownloadBlocks(remotePath, start, end)
 }
 
 func startListener(respChan chan string) error {

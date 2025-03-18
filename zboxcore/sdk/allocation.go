@@ -3,11 +3,12 @@ package sdk
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"mime/multipart"
 	"net/http"
@@ -24,16 +25,20 @@ import (
 	"github.com/0chain/common/core/currency"
 	"github.com/0chain/errors"
 	thrown "github.com/0chain/errors"
-	"github.com/0chain/gosdk/constants"
-	"github.com/0chain/gosdk/core/common"
-	"github.com/0chain/gosdk/core/pathutil"
-	"github.com/0chain/gosdk/core/sys"
-	"github.com/0chain/gosdk/zboxcore/blockchain"
-	"github.com/0chain/gosdk/zboxcore/fileref"
-	"github.com/0chain/gosdk/zboxcore/logger"
-	l "github.com/0chain/gosdk/zboxcore/logger"
-	"github.com/0chain/gosdk/zboxcore/marker"
-	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/gosdk_common/constants"
+	"github.com/0chain/gosdk_common/core/client"
+	"github.com/0chain/gosdk_common/core/common"
+	"github.com/0chain/gosdk_common/core/encryption"
+	"github.com/0chain/gosdk_common/core/pathutil"
+	"github.com/0chain/gosdk_common/core/sys"
+	"github.com/0chain/gosdk_common/core/transaction"
+	"github.com/0chain/gosdk_common/zboxcore/blockchain"
+	"github.com/0chain/gosdk_common/zboxcore/commonsdk"
+	"github.com/0chain/gosdk_common/zboxcore/fileref"
+	"github.com/0chain/gosdk_common/zboxcore/logger"
+	l "github.com/0chain/gosdk_common/zboxcore/logger"
+	"github.com/0chain/gosdk_common/zboxcore/marker"
+	"github.com/0chain/gosdk_common/zboxcore/zboxutil"
 	"github.com/mitchellh/go-homedir"
 	"go.uber.org/zap"
 )
@@ -74,222 +79,9 @@ var GetFileInfo = func(localpath string) (os.FileInfo, error) {
 	return sys.Files.Stat(localpath)
 }
 
-// BlobberAllocationStats represents the blobber allocation statistics.
-type BlobberAllocationStats struct {
-	BlobberID        string
-	BlobberURL       string
-	ID               string `json:"ID"`
-	Tx               string `json:"Tx"`
-	TotalSize        int64  `json:"TotalSize"`
-	UsedSize         int    `json:"UsedSize"`
-	OwnerID          string `json:"OwnerID"`
-	OwnerPublicKey   string `json:"OwnerPublicKey"`
-	Expiration       int    `json:"Expiration"`
-	AllocationRoot   string `json:"AllocationRoot"`
-	BlobberSize      int    `json:"BlobberSize"`
-	BlobberSizeUsed  int    `json:"BlobberSizeUsed"`
-	LatestRedeemedWM string `json:"LatestRedeemedWM"`
-	IsRedeemRequired bool   `json:"IsRedeemRequired"`
-	CleanedUp        bool   `json:"CleanedUp"`
-	Finalized        bool   `json:"Finalized"`
-	Terms            []struct {
-		ID           int    `json:"ID"`
-		BlobberID    string `json:"BlobberID"`
-		AllocationID string `json:"AllocationID"`
-		ReadPrice    int    `json:"ReadPrice"`
-		WritePrice   int    `json:"WritePrice"`
-	} `json:"Terms"`
-}
-
-// ConsolidatedFileMeta represents the file meta data.
-type ConsolidatedFileMeta struct {
-	Name            string
-	Type            string
-	Path            string
-	LookupHash      string
-	Hash            string
-	MimeType        string
-	Size            int64
-	NumBlocks       int64
-	ActualFileSize  int64
-	ActualNumBlocks int64
-	EncryptedKey    string
-
-	ActualThumbnailSize int64
-	ActualThumbnailHash string
-
-	Collaborators []fileref.Collaborator
-}
-
-type ConsolidatedFileMetaByName struct {
-	Name                string
-	Type                string
-	Path                string
-	LookupHash          string
-	Hash                string
-	MimeType            string
-	Size                int64
-	NumBlocks           int64
-	ActualFileSize      int64
-	ActualNumBlocks     int64
-	EncryptedKey        string
-	FileMetaHash        string
-	ThumbnailHash       string
-	ActualThumbnailSize int64
-	ActualThumbnailHash string
-	Collaborators       []fileref.Collaborator
-	CreatedAt           common.Timestamp
-	UpdatedAt           common.Timestamp
-}
-
-type AllocationStats struct {
-	UsedSize                  int64  `json:"used_size"`
-	NumWrites                 int64  `json:"num_of_writes"`
-	NumReads                  int64  `json:"num_of_reads"`
-	TotalChallenges           int64  `json:"total_challenges"`
-	OpenChallenges            int64  `json:"num_open_challenges"`
-	SuccessChallenges         int64  `json:"num_success_challenges"`
-	FailedChallenges          int64  `json:"num_failed_challenges"`
-	LastestClosedChallengeTxn string `json:"latest_closed_challenge"`
-}
-
-// PriceRange represents a price range allowed by user to filter blobbers.
-type PriceRange struct {
-	Min uint64 `json:"min"`
-	Max uint64 `json:"max"`
-}
-
-// IsValid price range.
-func (pr *PriceRange) IsValid() bool {
-	return pr.Min <= pr.Max
-}
-
-// Terms represents Blobber terms. A Blobber can update its terms,
-// but any existing offer will use terms of offer signing time.
-type Terms struct {
-	ReadPrice        common.Balance `json:"read_price"`  // tokens / GB
-	WritePrice       common.Balance `json:"write_price"` // tokens / GB
-	MaxOfferDuration time.Duration  `json:"max_offer_duration"`
-}
-
-// UpdateTerms represents Blobber terms during update blobber calls.
-// A Blobber can update its terms, but any existing offer will use terms of offer signing time.
-type UpdateTerms struct {
-	ReadPrice        *common.Balance `json:"read_price,omitempty"`  // tokens / GB
-	WritePrice       *common.Balance `json:"write_price,omitempty"` // tokens / GB
-	MaxOfferDuration *time.Duration  `json:"max_offer_duration,omitempty"`
-}
-
-// BlobberAllocation represents the blobber in the context of an allocation
-type BlobberAllocation struct {
-	BlobberID       string         `json:"blobber_id"`
-	Size            int64          `json:"size"`
-	Terms           Terms          `json:"terms"`
-	MinLockDemand   common.Balance `json:"min_lock_demand"`
-	Spent           common.Balance `json:"spent"`
-	Penalty         common.Balance `json:"penalty"`
-	ReadReward      common.Balance `json:"read_reward"`
-	Returned        common.Balance `json:"returned"`
-	ChallengeReward common.Balance `json:"challenge_reward"`
-	FinalReward     common.Balance `json:"final_reward"`
-}
-
 // Allocation represents a storage allocation.
 type Allocation struct {
-	// ID is the unique identifier of the allocation.
-	ID string `json:"id"`
-	// Tx is the transaction hash of the latest transaction related to the allocation.
-	Tx string `json:"tx"`
-
-	// DataShards is the number of data shards.
-	DataShards int `json:"data_shards"`
-
-	// ParityShards is the number of parity shards.
-	ParityShards int `json:"parity_shards"`
-
-	// Size is the size of the allocation.
-	Size int64 `json:"size"`
-
-	// Expiration is the expiration date of the allocation.
-	Expiration int64 `json:"expiration_date"`
-
-	// Owner is the id of the owner of the allocation.
-	Owner string `json:"owner_id"`
-
-	// OwnerPublicKey is the public key of the owner of the allocation.
-	OwnerPublicKey string `json:"owner_public_key"`
-
-	// Payer is the id of the payer of the allocation.
-	Payer string `json:"payer_id"`
-
-	// Blobbers is the list of blobbers that store the data of the allocation.
-	Blobbers []*blockchain.StorageNode `json:"blobbers"`
-
-	// Stats contains the statistics of the allocation.
-	Stats *AllocationStats `json:"stats"`
-
-	// TimeUnit is the time unit of the allocation.
-	TimeUnit time.Duration `json:"time_unit"`
-
-	// WritePool is the write pool of the allocation.
-	WritePool common.Balance `json:"write_pool"`
-
-	// BlobberDetails contains real terms used for the allocation.
-	// If the allocation has updated, then terms calculated using
-	// weighted average values.
-	BlobberDetails []*BlobberAllocation `json:"blobber_details"`
-
-	// ReadPriceRange is requested reading prices range.
-	ReadPriceRange PriceRange `json:"read_price_range"`
-
-	// WritePriceRange is requested writing prices range.
-	WritePriceRange PriceRange `json:"write_price_range"`
-
-	// MinLockDemand is the minimum lock demand of the allocation.
-	MinLockDemand float64 `json:"min_lock_demand"`
-
-	// ChallengeCompletionTime is the time taken to complete a challenge.
-	ChallengeCompletionTime time.Duration `json:"challenge_completion_time"`
-
-	// StartTime is the start time of the allocation.
-	StartTime common.Timestamp `json:"start_time"`
-
-	// Finalized is the flag to indicate if the allocation is finalized.
-	Finalized bool `json:"finalized,omitempty"`
-
-	// Cancelled is the flag to indicate if the allocation is cancelled.
-	Canceled bool `json:"canceled,omitempty"`
-
-	// MovedToChallenge is the amount moved to challenge pool related to the allocation.
-	MovedToChallenge common.Balance `json:"moved_to_challenge,omitempty"`
-
-	// MovedBack is the amount moved back from the challenge pool related to the allocation.
-	MovedBack common.Balance `json:"moved_back,omitempty"`
-
-	// MovedToValidators is the amount moved to validators related to the allocation.
-	MovedToValidators common.Balance `json:"moved_to_validators,omitempty"`
-
-	// FileOptions is a bitmask of file options, which are the permissions of the allocation.
-	FileOptions uint16 `json:"file_options"`
-
-	IsEnterprise bool `json:"is_enterprise"`
-
-	StorageVersion int `json:"storage_version"`
-
-	// Owner ecdsa public key
-	OwnerSigningPublicKey string `json:"owner_signing_public_key"`
-
-	// FileOptions to define file restrictions on an allocation for third-parties
-	// default 00000000 for all crud operations suggesting only owner has the below listed abilities.
-	// enabling option/s allows any third party to perform certain ops
-	// 		00000001 - 1  - upload
-	// 		00000010 - 2  - delete
-	// 		00000100 - 4  - update
-	// 		00001000 - 8  - move
-	// 		00010000 - 16 - copy
-	// 		00100000 - 32 - rename
-	ThirdPartyExtendable bool `json:"third_party_extendable"`
-
+	commonsdk.Allocation
 	numBlockDownloads       int
 	downloadChan            chan *DownloadRequest
 	repairChan              chan *RepairRequest
@@ -307,7 +99,9 @@ type Allocation struct {
 	consensusThreshold int
 	fullconsensus      int
 	allocationVersion  int64
-	sig                string `json:"-"`
+	sig                string             `json:"-"`
+	allocationRoot     string             `json:"-"`
+	privateSigningKey  ed25519.PrivateKey `json:"-"`
 }
 
 // OperationRequest represents an operation request with its related options.
@@ -335,12 +129,12 @@ type OperationRequest struct {
 }
 
 // GetReadPriceRange returns the read price range from the global configuration.
-func GetReadPriceRange() (PriceRange, error) {
+func GetReadPriceRange() (commonsdk.PriceRange, error) {
 	return getPriceRange("max_read_price")
 }
 
 // GetWritePriceRange returns the write price range from the global configuration.
-func GetWritePriceRange() (PriceRange, error) {
+func GetWritePriceRange() (commonsdk.PriceRange, error) {
 	return getPriceRange("max_write_price")
 }
 
@@ -362,48 +156,43 @@ func (a *Allocation) SetCheckStatus(checkStatus bool) {
 	a.checkStatus = checkStatus
 }
 
-func getPriceRange(name string) (PriceRange, error) {
-	conf, err := GetStorageSCConfig()
+func getPriceRange(name string) (commonsdk.PriceRange, error) {
+	conf, err := transaction.GetConfig("storage_sc_config")
 	if err != nil {
-		return PriceRange{}, err
+		return commonsdk.PriceRange{}, err
 	}
 	f := conf.Fields[name]
-	fStr, ok := f.(string)
-	if !ok {
-		return PriceRange{}, fmt.Errorf("type is wrong")
-	}
-	mrp, err := strconv.ParseFloat(fStr, 64)
+	mrp, err := strconv.ParseFloat(f, 64)
 	if err != nil {
-		return PriceRange{}, err
+		return commonsdk.PriceRange{}, err
 	}
 	coin, err := currency.ParseZCN(mrp)
 	if err != nil {
-		return PriceRange{}, err
+		return commonsdk.PriceRange{}, err
 	}
 	max, err := coin.Int64()
 	if err != nil {
-		return PriceRange{}, err
+		return commonsdk.PriceRange{}, err
 	}
-	return PriceRange{0, uint64(max)}, err
-
+	return commonsdk.PriceRange{Min: 0, Max: uint64(max)}, err
 }
 
 // GetStats returns the statistics of the allocation.
-func (a *Allocation) GetStats() *AllocationStats {
+func (a *Allocation) GetStats() *commonsdk.AllocationStats {
 	return a.Stats
 }
 
 // GetBlobberStats returns the statistics of the blobbers in the allocation.
-func (a *Allocation) GetBlobberStats() map[string]*BlobberAllocationStats {
+func (a *Allocation) GetBlobberStats() map[string]*commonsdk.BlobberAllocationStats {
 	numList := len(a.Blobbers)
 	wg := &sync.WaitGroup{}
 	wg.Add(numList)
-	rspCh := make(chan *BlobberAllocationStats, numList)
+	rspCh := make(chan *commonsdk.BlobberAllocationStats, numList)
 	for _, blobber := range a.Blobbers {
-		go getAllocationDataFromBlobber(blobber, a.ID, a.Tx, rspCh, wg)
+		go getAllocationDataFromBlobber(blobber, a.ID, a.Tx, rspCh, wg, a.Owner)
 	}
 	wg.Wait()
-	result := make(map[string]*BlobberAllocationStats, len(a.Blobbers))
+	result := make(map[string]*commonsdk.BlobberAllocationStats, len(a.Blobbers))
 	for i := 0; i < numList; i++ {
 		resp := <-rspCh
 		result[resp.BlobberURL] = resp
@@ -415,6 +204,35 @@ var downloadWorkerCount = 6
 
 func SetDownloadWorkerCount(count int) {
 	downloadWorkerCount = count
+}
+
+func (a *Allocation) generateAndSetOwnerSigningPublicKey() {
+	//create ecdsa public key from signature
+	if a.OwnerPublicKey != client.PublicKey() {
+		return
+	}
+	privateSigningKey, err := commonsdk.GenerateOwnerSigningKey(a.OwnerPublicKey, a.Owner)
+	if err != nil {
+		l.Logger.Error("Failed to generate owner signing key", zap.Error(err))
+		return
+	}
+	if a.OwnerSigningPublicKey == "" && !a.Finalized && !a.Canceled && client.Wallet().IsSplit {
+		pubKey := privateSigningKey.Public().(ed25519.PublicKey)
+		a.OwnerSigningPublicKey = hex.EncodeToString(pubKey)
+		hash, _, err := UpdateAllocation(0, 0, false, a.ID, 0, "", "", "", "", a.OwnerSigningPublicKey, false, nil, "")
+		if err != nil {
+			l.Logger.Error("Failed to update owner signing public key ", err, " allocationID: ", a.ID, " hash: ", hash)
+			return
+		}
+		l.Logger.Info("Owner signing public key updated with transaction : ", hash, " ownerSigningPublicKey : ", a.OwnerSigningPublicKey)
+		a.Tx = hash
+	} else if a.OwnerSigningPublicKey != "" {
+		pubKey := privateSigningKey.Public().(ed25519.PublicKey)
+		l.Logger.Info("Owner signing public key already exists: ", a.OwnerSigningPublicKey, " generated: ", hex.EncodeToString(pubKey))
+	} else {
+		return
+	}
+	a.privateSigningKey = privateSigningKey
 }
 
 // InitAllocation initializes the allocation.
@@ -436,6 +254,7 @@ func (a *Allocation) InitAllocation() {
 			}
 		}
 	}
+	a.generateAndSetOwnerSigningPublicKey()
 	a.startWorker(a.ctx)
 	InitCommitWorker(a.Blobbers)
 	InitBlockDownloader(a.Blobbers, downloadWorkerCount)
@@ -444,7 +263,7 @@ func (a *Allocation) InitAllocation() {
 }
 
 func (a *Allocation) isInitialized() bool {
-	return a.initialized && sdkInitialized
+	return a.initialized && client.IsSDKInitialized()
 }
 
 func (a *Allocation) startWorker(ctx context.Context) {
@@ -860,7 +679,7 @@ func (a *Allocation) GetCurrentVersion() (bool, error) {
 		go func(blobber *blockchain.StorageNode) {
 
 			defer wg.Done()
-			wr, err := GetWritemarker(a.ID, a.Tx, a.sig, blobber.ID, blobber.Baseurl)
+			wr, err := GetWritemarker(a.ID, a.Tx, a.sig, blobber.ID, blobber.Baseurl, a.Owner)
 			if err != nil {
 				atomic.AddInt32(&errCnt, 1)
 				logger.Logger.Error("error during getWritemarke", zap.Error(err))
@@ -869,6 +688,7 @@ func (a *Allocation) GetCurrentVersion() (bool, error) {
 				markerChan <- nil
 			} else {
 				markerChan <- &RollbackBlobber{
+					ClientId:     a.Owner,
 					blobber:      blobber,
 					lvm:          wr,
 					commitResult: &CommitResult{},
@@ -923,7 +743,7 @@ func (a *Allocation) GetCurrentVersion() (bool, error) {
 	}
 
 	if prevVersion > latestVersion {
-		prevVersion, latestVersion = latestVersion, prevVersion
+		prevVersion, latestVersion = latestVersion, prevVersion //nolint:ineffassign,staticcheck
 	}
 
 	// TODO: Check if allocation can be repaired
@@ -936,7 +756,7 @@ func (a *Allocation) GetCurrentVersion() (bool, error) {
 		wg.Add(1)
 		go func(rb *RollbackBlobber) {
 			defer wg.Done()
-			err := rb.processRollback(context.TODO(), a.ID)
+			err := rb.processRollback(context.TODO(), a.ID, a.allocationVersion)
 			if err != nil {
 				success = false
 			}
@@ -964,6 +784,7 @@ func (a *Allocation) RepairRequired(remotepath string) (zboxutil.Uint128, zboxut
 	}
 
 	listReq := &ListRequest{Consensus: Consensus{RWMutex: &sync.RWMutex{}}}
+	listReq.ClientId = a.Owner
 	listReq.allocationID = a.ID
 	listReq.allocationTx = a.Tx
 	listReq.sig = a.sig
@@ -1341,6 +1162,17 @@ func (a *Allocation) generateDownloadRequest(
 	downloadReq.allocOwnerID = a.Owner
 	downloadReq.sig = a.sig
 	downloadReq.allocOwnerPubKey = a.OwnerPublicKey
+	downloadReq.allocOwnerSigningPubKey = a.OwnerSigningPublicKey
+	if len(a.privateSigningKey) == 0 {
+		sk, err := commonsdk.GenerateOwnerSigningKey(client.PublicKey(), client.Id())
+		if err != nil {
+			return nil, err
+		}
+		downloadReq.allocOwnerSigningPrivateKey = sk
+	} else {
+		downloadReq.allocOwnerSigningPrivateKey = a.privateSigningKey
+	}
+	logger.Logger.Debug("Download req private key", downloadReq.allocOwnerSigningPrivateKey)
 	downloadReq.ctx, downloadReq.ctxCncl = context.WithCancel(a.ctx)
 	downloadReq.fileHandler = fileHandler
 	downloadReq.localFilePath = localFilePath
@@ -1444,7 +1276,6 @@ func (a *Allocation) processReadMarker(drs []*DownloadRequest) {
 	}
 	wg.Wait()
 	elapsedProcessDownloadRequest := time.Since(now)
-
 	// Do not send readmarkers for free reads
 	if a.readFree {
 		for _, dr := range drs {
@@ -1574,6 +1405,7 @@ func (a *Allocation) ListDirFromAuthTicket(authTicket string, lookupHash string,
 	}
 
 	listReq := &ListRequest{Consensus: Consensus{RWMutex: &sync.RWMutex{}}}
+	listReq.ClientId = a.Owner
 	listReq.allocationID = a.ID
 	listReq.allocationTx = a.Tx
 	listReq.sig = a.sig
@@ -1614,6 +1446,7 @@ func (a *Allocation) ListDir(path string, opts ...ListRequestOptions) (*ListResu
 		return nil, errors.New("invalid_path", "Path should be valid and absolute")
 	}
 	listReq := &ListRequest{Consensus: Consensus{RWMutex: &sync.RWMutex{}}}
+	listReq.ClientId = a.Owner
 	listReq.allocationID = a.ID
 	listReq.allocationTx = a.Tx
 	listReq.sig = a.sig
@@ -1642,6 +1475,7 @@ func (a *Allocation) getRefs(path, pathHash, authToken, offsetPath, updatedDate,
 	}
 
 	oTreeReq := &ObjectTreeRequest{
+		ClientId:       a.Owner,
 		allocationID:   a.ID,
 		allocationTx:   a.Tx,
 		sig:            a.sig,
@@ -1871,6 +1705,7 @@ func (a *Allocation) GetRecentlyAddedRefs(page int, fromDate int64, pageLimit in
 
 	offset := int64(page-1) * int64(pageLimit)
 	req := &RecentlyAddedRefRequest{
+		ClientId:     a.Owner,
 		allocationID: a.ID,
 		allocationTx: a.Tx,
 		sig:          a.sig,
@@ -1892,13 +1727,14 @@ func (a *Allocation) GetRecentlyAddedRefs(page int, fromDate int64, pageLimit in
 // GetFileMeta retrieves the file meta data of a file in the allocation.
 // The file meta data includes the file type, name, hash, lookup hash, mime type, path, size, number of blocks, encrypted key, collaborators, actual file size, actual thumbnail hash, and actual thumbnail size.
 //   - path: the path of the file to get the meta data.
-func (a *Allocation) GetFileMeta(path string) (*ConsolidatedFileMeta, error) {
+func (a *Allocation) GetFileMeta(path string) (*commonsdk.ConsolidatedFileMeta, error) {
 	if !a.isInitialized() {
 		return nil, notInitialized
 	}
 
-	result := &ConsolidatedFileMeta{}
+	result := &commonsdk.ConsolidatedFileMeta{}
 	listReq := &ListRequest{Consensus: Consensus{RWMutex: &sync.RWMutex{}}}
+	listReq.ClientId = a.Owner
 	listReq.allocationID = a.ID
 	listReq.allocationTx = a.Tx
 	listReq.sig = a.sig
@@ -1933,12 +1769,12 @@ func (a *Allocation) GetFileMeta(path string) (*ConsolidatedFileMeta, error) {
 // GetFileMetaByName retrieve consolidated file metadata given its name (its full path starting from root "/").
 //   - fileName: full file path starting from the allocation root.
 //   - fileName: full file path starting from the allocation root.
-func (a *Allocation) GetFileMetaByName(fileName string) ([]*ConsolidatedFileMetaByName, error) {
+func (a *Allocation) GetFileMetaByName(fileName string) ([]*commonsdk.ConsolidatedFileMetaByName, error) {
 	if !a.isInitialized() {
 		return nil, notInitialized
 	}
 
-	resultArr := []*ConsolidatedFileMetaByName{}
+	resultArr := []*commonsdk.ConsolidatedFileMetaByName{}
 	listReq := &ListRequest{Consensus: Consensus{RWMutex: &sync.RWMutex{}}}
 	listReq.allocationID = a.ID
 	listReq.allocationTx = a.Tx
@@ -1950,7 +1786,7 @@ func (a *Allocation) GetFileMetaByName(fileName string) ([]*ConsolidatedFileMeta
 	_, _, refs, _ := listReq.getMultipleFileConsensusFromBlobbers()
 	if len(refs) != 0 {
 		for _, ref := range refs {
-			result := &ConsolidatedFileMetaByName{}
+			result := &commonsdk.ConsolidatedFileMetaByName{}
 			if ref != nil {
 				result.Type = ref.Type
 				result.Name = ref.Name
@@ -1999,12 +1835,12 @@ func (a *Allocation) GetChunkReadSize(encrypt bool) int64 {
 // Usually used for file sharing, the owner sets the file as shared and generates an auth ticket which they should share with other non-owner users.
 //   - authTicket: the auth ticket to get the file meta data.
 //   - lookupHash: the lookup hash of the file to get the meta data. It's an augmentation of the allocation ID and the path hash.
-func (a *Allocation) GetFileMetaFromAuthTicket(authTicket string, lookupHash string) (*ConsolidatedFileMeta, error) {
+func (a *Allocation) GetFileMetaFromAuthTicket(authTicket string, lookupHash string) (*commonsdk.ConsolidatedFileMeta, error) {
 	if !a.isInitialized() {
 		return nil, notInitialized
 	}
 
-	result := &ConsolidatedFileMeta{}
+	result := &commonsdk.ConsolidatedFileMeta{}
 	sEnc, err := base64.StdEncoding.DecodeString(authTicket)
 	if err != nil {
 		return nil, errors.New("auth_ticket_decode_error", "Error decoding the auth ticket."+err.Error())
@@ -2019,6 +1855,7 @@ func (a *Allocation) GetFileMetaFromAuthTicket(authTicket string, lookupHash str
 	}
 
 	listReq := &ListRequest{Consensus: Consensus{RWMutex: &sync.RWMutex{}}}
+	listReq.ClientId = a.Owner
 	listReq.allocationID = a.ID
 	listReq.allocationTx = a.Tx
 	listReq.sig = a.sig
@@ -2201,7 +2038,7 @@ func (a *Allocation) RevokeShare(path string, refereeClientID string) error {
 		query.Add("path", path)
 		query.Add("refereeClientID", refereeClientID)
 
-		httpreq, err := zboxutil.NewRevokeShareRequest(baseUrl, a.ID, a.Tx, a.sig, query)
+		httpreq, err := zboxutil.NewRevokeShareRequest(baseUrl, a.ID, a.Tx, a.sig, query, a.Owner)
 		if err != nil {
 			return err
 		}
@@ -2216,7 +2053,7 @@ func (a *Allocation) RevokeShare(path string, refereeClientID string) error {
 				}
 				defer resp.Body.Close()
 
-				respbody, err := ioutil.ReadAll(resp.Body)
+				respbody, err := io.ReadAll(resp.Body)
 				if err != nil {
 					l.Logger.Error("Error: Resp ", err)
 					return err
@@ -2294,6 +2131,7 @@ func (a *Allocation) GetAuthTicket(path, filename string,
 	}
 
 	shareReq := &ShareRequest{
+		ClientId:          a.Owner,
 		expirationSeconds: expiration,
 		allocationID:      a.ID,
 		allocationTx:      a.Tx,
@@ -2302,6 +2140,7 @@ func (a *Allocation) GetAuthTicket(path, filename string,
 		ctx:               a.ctx,
 		remotefilepath:    path,
 		remotefilename:    filename,
+		signingPrivateKey: a.privateSigningKey,
 	}
 
 	if referenceType == fileref.DIRECTORY {
@@ -2364,7 +2203,7 @@ func (a *Allocation) UploadAuthTicketToBlobber(authTicket string, clientEncPubKe
 		if err := formWriter.Close(); err != nil {
 			return err
 		}
-		httpreq, err := zboxutil.NewShareRequest(url, a.ID, a.Tx, a.sig, body)
+		httpreq, err := zboxutil.NewShareRequest(url, a.ID, a.Tx, a.sig, body, a.Owner)
 		if err != nil {
 			return err
 		}
@@ -2380,7 +2219,7 @@ func (a *Allocation) UploadAuthTicketToBlobber(authTicket string, clientEncPubKe
 				}
 				defer resp.Body.Close()
 
-				respbody, err := ioutil.ReadAll(resp.Body)
+				respbody, err := io.ReadAll(resp.Body)
 				if err != nil {
 					l.Logger.Error("Error: Resp ", err)
 					return err
@@ -2414,6 +2253,16 @@ func (a *Allocation) UploadAuthTicketToBlobber(authTicket string, clientEncPubKe
 //   - remotepath: The remote path of the file to cancel the download operation.
 func (a *Allocation) CancelDownload(remotepath string) error {
 	if downloadReq, ok := a.downloadProgressMap[remotepath]; ok {
+		downloadReq.isDownloadCanceled = true
+		downloadReq.ctxCncl()
+		return nil
+	}
+	return errors.New("remote_path_not_found", "Invalid path. No download in progress for the path "+remotepath)
+}
+
+func (a *Allocation) CancelDownloadBlocks(remotepath string, start, end int64) error {
+	hash := encryption.Hash(fmt.Sprintf("%s:%d:%d", remotepath, start, end))
+	if downloadReq, ok := a.downloadProgressMap[hash]; ok {
 		downloadReq.isDownloadCanceled = true
 		downloadReq.ctxCncl()
 		return nil
@@ -2769,6 +2618,13 @@ func (a *Allocation) downloadFromAuthTicket(fileHandler sys.File, authTicket str
 	downloadReq.sig = a.sig
 	downloadReq.allocOwnerID = a.Owner
 	downloadReq.allocOwnerPubKey = a.OwnerPublicKey
+	downloadReq.allocOwnerSigningPubKey = a.OwnerSigningPublicKey
+	//for auth ticket set your own signing key
+	sk, err := commonsdk.GenerateOwnerSigningKey(client.PublicKey(), client.Id())
+	if err != nil {
+		return err
+	}
+	downloadReq.allocOwnerSigningPrivateKey = sk
 	downloadReq.ctx, downloadReq.ctxCncl = context.WithCancel(a.ctx)
 	downloadReq.fileHandler = fileHandler
 	downloadReq.localFilePath = localFilePath
@@ -2941,7 +2797,7 @@ func (a *Allocation) CancelRepair() error {
 	return errors.New("invalid_cancel_repair_request", "No repair in progress for the allocation")
 }
 
-func (a *Allocation) GetMaxWriteReadFromBlobbers(blobbers []*BlobberAllocation) (maxW float64, maxR float64, err error) {
+func (a *Allocation) GetMaxWriteReadFromBlobbers(blobbers []*commonsdk.BlobberAllocation) (maxW float64, maxR float64, err error) {
 	if !a.isInitialized() {
 		return 0, 0, notInitialized
 	}
@@ -3011,7 +2867,7 @@ func (a *Allocation) GetMinWriteRead() (minW float64, minR float64, err error) {
 // GetMaxStorageCostFromBlobbers returns the maximum storage cost from a given list of allocation blobbers.
 //   - size: The size of the file to calculate the storage cost.
 //   - blobbers: The list of blobbers to calculate the storage cost.
-func (a *Allocation) GetMaxStorageCostFromBlobbers(size int64, blobbers []*BlobberAllocation) (float64, error) {
+func (a *Allocation) GetMaxStorageCostFromBlobbers(size int64, blobbers []*commonsdk.BlobberAllocation) (float64, error) {
 	var cost common.Balance // total price for size / duration
 
 	for _, d := range blobbers {
@@ -3102,14 +2958,14 @@ func (a *Allocation) SetConsensusThreshold() {
 //   - fileOptionsParams: The file options parameters which control permissions of the files of the allocations.
 //   - statusCB: A callback function to receive status updates during the update operation.
 func (a *Allocation) UpdateWithRepair(
-	size int64,
+	size, authRoundExpiry int64,
 	extend bool,
 	lock uint64,
-	addBlobberId, addBlobberAuthTicket, removeBlobberId string,
-	setThirdPartyExtendable bool, fileOptionsParams *FileOptionsParameters,
+	addBlobberId, addBlobberAuthTicket, removeBlobberId, ownerSigninPublicKey string,
+	setThirdPartyExtendable bool, fileOptionsParams *commonsdk.FileOptionsParameters, updateAllocTicket string,
 	statusCB StatusCallback,
 ) (string, error) {
-	updatedAlloc, hash, isRepairRequired, err := a.UpdateWithStatus(size, extend, lock, addBlobberId, addBlobberAuthTicket, removeBlobberId, setThirdPartyExtendable, fileOptionsParams, statusCB)
+	updatedAlloc, hash, isRepairRequired, err := a.UpdateWithStatus(size, authRoundExpiry, extend, lock, addBlobberId, addBlobberAuthTicket, removeBlobberId, ownerSigninPublicKey, setThirdPartyExtendable, fileOptionsParams, updateAllocTicket)
 	if err != nil {
 		return hash, err
 	}
@@ -3137,12 +2993,12 @@ func (a *Allocation) UpdateWithRepair(
 //
 // Returns the updated allocation, hash, and a boolean indicating whether repair is required.
 func (a *Allocation) UpdateWithStatus(
-	size int64,
+	size, authRoundExpiry int64,
 	extend bool,
 	lock uint64,
-	addBlobberId, addBlobberAuthTicket, removeBlobberId string,
-	setThirdPartyExtendable bool, fileOptionsParams *FileOptionsParameters,
-	statusCB StatusCallback,
+	addBlobberId, addBlobberAuthTicket, removeBlobberId, ownerSigninPublicKey string,
+	setThirdPartyExtendable bool, fileOptionsParams *commonsdk.FileOptionsParameters,
+	updateAllocTicket string,
 ) (*Allocation, string, bool, error) {
 	var (
 		alloc            *Allocation
@@ -3153,7 +3009,7 @@ func (a *Allocation) UpdateWithStatus(
 	}
 
 	l.Logger.Info("Updating allocation")
-	hash, _, err := UpdateAllocation(size, extend, a.ID, lock, addBlobberId, addBlobberAuthTicket, removeBlobberId, setThirdPartyExtendable, fileOptionsParams)
+	hash, _, err := UpdateAllocation(size, authRoundExpiry, extend, a.ID, lock, addBlobberId, addBlobberAuthTicket, removeBlobberId, "", ownerSigninPublicKey, setThirdPartyExtendable, fileOptionsParams, updateAllocTicket)
 	if err != nil {
 		return alloc, "", isRepairRequired, err
 	}
