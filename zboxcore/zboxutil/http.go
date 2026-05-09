@@ -70,8 +70,9 @@ const (
 	REDEEM_ENDPOINT              = "/v1/connection/redeem/"
 
 	// CLIENT_SIGNATURE_HEADER represents http request header contains signature.
-	CLIENT_SIGNATURE_HEADER = "X-App-Client-Signature"
-	ALLOCATION_ID_HEADER    = "ALLOCATION-ID"
+	CLIENT_SIGNATURE_HEADER    = "X-App-Client-Signature"
+	CLIENT_SIGNATURE_HEADER_V2 = "X-App-Client-Signature-V2"
+	ALLOCATION_ID_HEADER       = "ALLOCATION-ID"
 )
 
 func getEnvAny(names ...string) string {
@@ -159,6 +160,23 @@ func setClientInfoWithSign(req *http.Request, allocation string) error {
 		return err
 	}
 	req.Header.Set(CLIENT_SIGNATURE_HEADER, sign)
+
+	return nil
+}
+
+// setClientInfoWithSignV2 sets client-info headers plus X-App-Client-Signature-V2.
+// Used for owner-path GET requests where the blobber verifies the caller owns
+// the wallet — e.g. list requests rejected with "Owner signature verification failed"
+// when unsigned. The V2 signature is hash(allocationTx + baseURL) signed with
+// the wallet key.
+func setClientInfoWithSignV2(req *http.Request, allocation, baseURL string) error {
+	setClientInfo(req)
+
+	sig, err := client.Sign(encryption.Hash(allocation + baseURL))
+	if err != nil {
+		return err
+	}
+	req.Header.Set(CLIENT_SIGNATURE_HEADER_V2, sig)
 
 	return nil
 }
@@ -443,7 +461,17 @@ func NewListRequest(baseUrl, allocationID string, allocationTx string, path, pat
 	if err != nil {
 		return nil, err
 	}
-	setClientInfo(req)
+
+	// Owner-path requests (no auth_token) must carry X-App-Client-Signature-V2
+	// or the blobber rejects with "Owner signature verification failed".
+	// Shared requests are authenticated via auth_token; basic client info suffices.
+	if auth_token == "" {
+		if err := setClientInfoWithSignV2(req, allocationTx, baseUrl); err != nil {
+			return nil, err
+		}
+	} else {
+		setClientInfo(req)
+	}
 
 	req.Header.Set(ALLOCATION_ID_HEADER, allocationID)
 

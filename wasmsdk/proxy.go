@@ -152,7 +152,8 @@ func main() {
 				//sdk
 				"init":                   initSDKs,
 				"setWallet":              setWallet,
-				"getPublicEncryptionKey": zcncore.GetPublicEncryptionKey,
+				"getPublicEncryptionKey":   zcncore.GetPublicEncryptionKey,
+				"getPublicEncryptionKeyV2": zcncore.GetPublicEncryptionKeyV2,
 				"hideLogs":               hideLogs,
 				"showLogs":               showLogs,
 				"getUSDRate":             getUSDRate,

@@ -2,6 +2,7 @@ package zcncore
 
 import (
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	stdErrors "errors"
 
 	"github.com/0chain/errors"
+	rawencryption "github.com/0chain/gosdk/core/encryption"
 	"github.com/0chain/gosdk/core/common"
 	"github.com/0chain/gosdk/core/conf"
 	"github.com/0chain/gosdk/core/logger"
@@ -1310,6 +1312,36 @@ func CryptoJsDecrypt(passphrase, encryptedMessage string) (string, error) {
 func GetPublicEncryptionKey(mnemonic string) (string, error) {
 	encScheme := encryption.NewEncryptionScheme()
 	_, err := encScheme.Initialize(mnemonic)
+	if err != nil {
+		return "", err
+	}
+	return encScheme.GetPublicKey()
+}
+
+// GetPublicEncryptionKeyV2 derives the owner's encryption public key from the
+// wallet signing key. Unlike V1 (which initialises the encryption scheme from
+// the mnemonic), V2 signs a deterministic hash of the public key to produce
+// the ed25519 seed used as the encryption key material. The enterprise wasm
+// exposes this as "getPublicEncryptionKeyV2".
+func GetPublicEncryptionKeyV2(publicKey string) (string, error) {
+	if !_config.isValidWallet || _config.wallet.ClientID == "" {
+		return "", errors.New("", "wallet not found")
+	}
+	if _config.wallet.ClientKey != publicKey {
+		return "", errors.New("public_key_mismatch", "public key does not match loaded wallet")
+	}
+	hashData := fmt.Sprintf("%s:%s", publicKey, "owner_signing_public_key")
+	sig, err := Sign(rawencryption.Hash(hashData))
+	if err != nil {
+		return "", err
+	}
+	decodedSig, err := hex.DecodeString(sig)
+	if err != nil {
+		return "", err
+	}
+	privateSigningKey := ed25519.NewKeyFromSeed(decodedSig[:32])
+	encScheme := encryption.NewEncryptionScheme()
+	_, err = encScheme.Initialize(hex.EncodeToString(privateSigningKey))
 	if err != nil {
 		return "", err
 	}
